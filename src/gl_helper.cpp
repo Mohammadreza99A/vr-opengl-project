@@ -1,0 +1,107 @@
+#include "gl_helper.h"
+
+GLFWwindow *glHelper::initGlfwWindow()
+{
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For MacOS
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    return glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, NULL, NULL);
+}
+
+void glHelper::printContextInfo()
+{
+    std::cout << "Vendor: \t" << glGetString(GL_VENDOR) << std::endl;
+    std::cout << "Renderer: \t" << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "Version: \t" << glGetString(GL_VERSION) << std::endl;
+    std::cout << "GLSL Version: \t" << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+}
+
+void glHelper::initCallbacks(GLFWwindow *window)
+{
+    // Keyboard Callback
+    glfwSetKeyCallback(window, key_callback);
+    // Framebuffer resize callback
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // Ensure we can capture the escape key being pressed below
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+}
+
+void glHelper::init(GLFWwindow *window)
+{
+    ilInit();
+
+    glClearColor(0.3f, 0.5f, 0.5f, 1.0f);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+
+    glEnable(GL_MULTISAMPLE);
+
+    glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+}
+
+void glHelper::mainLoop(GLFWwindow *window)
+{
+
+    double prev = 0;
+    int deltaFrame = 0;
+    // fps function
+    auto fps = [&](double now)
+    {
+        double deltaTime = now - prev;
+        deltaFrame++;
+        if (deltaTime > 0.5)
+        {
+            prev = now;
+            const double fpsCount = (double)deltaFrame / deltaTime;
+            deltaFrame = 0;
+            std::cout << "\r FPS: " << fpsCount << std::endl;
+        }
+    };
+
+    // Main loop until escape key is pressed
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+        double currentTime = glfwGetTime();
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        fps(currentTime);
+        glfwSwapBuffers(window);
+    }
+}
+
+void glHelper::error_callback(int error, const char *description)
+{
+    std::cerr << description << std::endl;
+}
+
+void glHelper::framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    // Close window if ESCAPE key is pressed
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+
+    if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
+        std::cout << "Space key was pressed" << std::endl;
+}
+
+void glHelper::cleanup(GLFWwindow *window)
+{
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
