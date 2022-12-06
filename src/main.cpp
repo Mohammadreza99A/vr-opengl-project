@@ -2,10 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
 
 #include "gl_helper.h"
 
@@ -28,14 +26,14 @@ int main()
     }
 
     glfwMakeContextCurrent(window);
-    glHelper::printContextInfo();
 
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_NO_ERROR)
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cerr << "GLEW Init Failed : %s" << std::endl;
+        std::cerr << "GLAD Init Failed : %s" << std::endl;
         return EXIT_FAILURE;
     }
+
+    glHelper::printContextInfo();
 
     glHelper::initCallbacks(window);
 

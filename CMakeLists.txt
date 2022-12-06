@@ -11,8 +11,11 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 include_directories(include)
 
-set(INCLUDE_PATH "/usr/include/GL" "/usr/include/glm")
+set(INCLUDE_PATH "/usr/include/glm")
 set(LIB_PATH "/usr/lib")
+
+#for glad library
+add_subdirectory(include/glad/)
 
 INCLUDE_DIRECTORIES(${INCLUDE_PATH})
 LINK_DIRECTORIES(${LIB_PATH})
@@ -27,7 +30,6 @@ foreach(glsl_file ${GLSL_FILES})
     configure_file(${glsl_file} . COPYONLY)
 endforeach(glsl_file)
 
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} GLEW)
+target_link_libraries(${PROJECT_NAME} glad)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} glfw)
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} GL)
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} IL)

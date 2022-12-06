@@ -23,6 +23,5 @@ This project requires these dependencies in order to be compiled and ran:
 | Library | Version |
 | :-----: | :-----: |
 | glfw    | 3.3.8   |
-| glew    | 2.2.0   |
 | devil   | 1.8.0   |
 | glm     | 0.9.9.8 |
