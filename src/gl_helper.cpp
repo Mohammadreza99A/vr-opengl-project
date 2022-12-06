@@ -1,5 +1,8 @@
 #include "gl_helper.h"
 
+
+Camera camera(glm::vec3(0.0, 0.0, 0.1));
+
 GLFWwindow *glHelper::initGlfwWindow()
 {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -21,7 +24,7 @@ void glHelper::printContextInfo()
 void glHelper::initCallbacks(GLFWwindow *window)
 {
     // Keyboard Callback
-    glfwSetKeyCallback(window, key_callback);
+    //glfwSetKeyCallback(window, key_callback);
     // Framebuffer resize callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     // Ensure we can capture the escape key being pressed below
@@ -49,7 +52,17 @@ void glHelper::init(GLFWwindow *window)
 }
 
 void glHelper::mainLoop(GLFWwindow *window)
-{
+{   
+
+	Shader shader("shaders/vertexShader.txt", "shaders/fragShader.txt");
+
+	
+    char path[] = PATH_TO_OBJECTS "/Farm_house.obj";
+
+	Object house(path);
+	house.makeObject(shader);
+
+	const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);   
 
     double prev = 0;
     int deltaFrame = 0;
@@ -67,13 +80,40 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
+    glm::mat4 model = glm::mat4(1.0);
+	model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
+	model = glm::scale(model, glm::vec3(0.5, 0.5, 1.0));
+
+	glm::mat4 inverseModel = glm::transpose( glm::inverse(model));
+
+	glm::mat4 view = camera.GetViewMatrix();
+	glm::mat4 perspective = camera.GetProjectionMatrix();
+
+    //Rendering
+
+	glfwSwapInterval(1);
+
     // Main loop until escape key is pressed
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window);
+		view = camera.GetViewMatrix();
         glfwPollEvents();
         double currentTime = glfwGetTime();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+        shader.use();
+		//1. send the relevant uniform to the shader
+		shader.setMatrix4("M", model);
+		shader.setMatrix4("itM", inverseModel);
+		shader.setMatrix4("V", view);
+		shader.setMatrix4("P", perspective);
+		shader.setVector3f("u_view_pos", camera.Position);
+		shader.setVector3f("u_light_pos", light_pos);
+
+        house.draw();
 
         fps(currentTime);
         glfwSwapBuffers(window);
@@ -90,7 +130,7 @@ void glHelper::framebuffer_size_callback(GLFWwindow *window, int width, int heig
     glViewport(0, 0, width, height);
 }
 
-void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+/*void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     // Close window if ESCAPE key is pressed
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -98,10 +138,37 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         std::cout << "Space key was pressed" << std::endl;
-}
+}*/
 
 void glHelper::cleanup(GLFWwindow *window)
 {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void glHelper::processInput(GLFWwindow *window){
+	//3. Use the cameras class to change the parameters of the camera
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+
+	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(UP, 1);
+	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(DOWN, 1);
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(LEFT, 1);
+	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(RIGHT, 1);
+
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(FORWARD, 1);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		camera.ProcessKeyboardMovement(BACKWARD, 1);
+
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+		camera.ProcessKeyboardRotation(-1, 0.0); 
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+		camera.ProcessKeyboardRotation(1, 0.0);
+
 }

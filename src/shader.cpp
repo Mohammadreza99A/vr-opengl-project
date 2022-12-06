@@ -24,6 +24,7 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
         fShaderFile.close();
         // convert stream into string
         vertexCode = vShaderStream.str();
+ 
         fragmentCode = fShaderStream.str();
     }
     catch (std::ifstream::failure &e)
