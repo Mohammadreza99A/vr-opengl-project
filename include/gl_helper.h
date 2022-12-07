@@ -3,7 +3,6 @@
 
 #include <glad/glad.h>
 
-
 #include <GLFW/glfw3.h>
 #include <IL/il.h>
 
@@ -16,6 +15,8 @@
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
+
+#include "stb_image.h"
 
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 512
@@ -30,9 +31,8 @@ namespace glHelper
     void mainLoop(GLFWwindow *window);
     void error_callback(int error, const char *description);
     void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-    //void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+    void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
     void cleanup(GLFWwindow *window);
-    void processInput(GLFWwindow *window);
 } // namespace glHelper
 
 #endif

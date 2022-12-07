@@ -13,14 +13,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "shader.h"
-/*Principe :
- * On donne le path du fichier -> on lit le fichier
- * 2 étape
- * 1)load le model -> lit le fichier ligne par ligne
- * liste de position de normal de texture
- * suivant la premi�re lettre : lit les valeur suivant et les met dans un vec puis push dans la bonne liste
- * en gros sotck les data dans une frome de tableau
- */
 
 struct Vertex
 {
@@ -44,9 +36,7 @@ public:
     glm::mat4 model = glm::mat4(1.0);
 
     Object(const char *path);
-
     void makeObject(Shader shader, bool texture = true);
-
     void draw();
 };
 #endif
