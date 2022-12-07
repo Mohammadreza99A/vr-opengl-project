@@ -1,5 +1,4 @@
 #include "texture.h"
-#include "ThirdParty/stb/stb_image.h"
 
 Texture::Texture(const std::string &path, const bool vflip)
     : textID(0), dataBuffer(nullptr), filePath(path), width(0), height(0), nrChannels(0), flip(true)
@@ -34,11 +33,11 @@ Texture::~Texture(){
     glDeleteTextures(1, &textID);
 }
 
-Texture::bind(unsigned int slot){
+void Texture::bind(unsigned int slot){
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, textID);
 }
 
-Texture::unbind(unsigned int slot){
+void Texture::unbind(unsigned int slot){
     glBindTexture(GL_TEXTURE_2D, 0);
 }

@@ -8,15 +8,13 @@
 
 #include <iostream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "ThirdParty/stb/stb_image.h"
 
 #include <map>
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
 
-#include "stb_image.h"
+#include "texture.h"
 
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 512

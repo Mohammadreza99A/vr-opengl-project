@@ -6,7 +6,6 @@
 #include <GLFW/glfw3.h>
 
 #include "gl_helper.h"
-
 int main()
 {
 
