@@ -56,7 +56,8 @@ void glHelper::mainLoop(GLFWwindow *window)
 
 	Shader shader("shaders/vertexShader.txt", "shaders/fragShader.txt");
 
-	
+	Shader houseTexShader("shaders/textFShader.txt", "shaders/textVShader.txt");
+
     char path[] = PATH_TO_OBJECTS "/Farm_house.obj";
 
 	Object house(path);
@@ -88,6 +89,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
 	glm::mat4 view = camera.GetViewMatrix();
 	glm::mat4 perspective = camera.GetProjectionMatrix();
+
 
     //Rendering
 

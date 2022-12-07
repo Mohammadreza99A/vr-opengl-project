@@ -9,6 +9,10 @@
 
 #include <iostream>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "ThirdParty/stb/stb_image.h"
+
+#include <map>
 #include "camera.h"
 #include "shader.h"
 #include "object.h"

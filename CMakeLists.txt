@@ -12,7 +12,7 @@ set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 
 include_directories(include)
 
-set(INCLUDE_PATH "/usr/include/glm include/ThirdParty/stb/")
+set(INCLUDE_PATH "/usr/include/glm")
 set(LIB_PATH "/usr/lib")
 
 #for glad library
