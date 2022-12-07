@@ -8,13 +8,11 @@
 
 #include <iostream>
 
-
 #include <map>
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
 
-#include "stb_image.h"
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 512
 #define WIN_HEIGHT 512

@@ -1,5 +1,8 @@
 #include "gl_helper.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 Camera camera(glm::vec3(0.0, 0.0, 0.1));
 
 GLFWwindow *glHelper::initGlfwWindow()
@@ -89,7 +92,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     // Rendering
     int width, height, nrChannels;
-    std::string pathToHosuTex=PATH_TO_TEXTURE "/Farm_house_D.jpeg";
+    std::string pathToHosuTex = PATH_TO_TEXTURE "/Farm_house_D.jpeg";
     unsigned char *data = stbi_load(pathToHosuTex.c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -101,8 +104,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-    //Texture textureHouse(pathToHosuTex);
-
+    // Texture textureHouse(pathToHosuTex);
 
     glfwSwapInterval(1);
 

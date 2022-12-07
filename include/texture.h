@@ -20,7 +20,7 @@ private:
     bool flip;
 
 public:
-    Texture(const std::string &path, const bool vflip=true);
+    Texture(const std::string &path, const bool vflip = true);
     ~Texture();
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;

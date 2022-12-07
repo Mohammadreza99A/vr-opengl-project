@@ -6,7 +6,4 @@ in vec2 TexCoord;
 uniform sampler2D ourTexture;
 in vec3 v_specular;
 
-void main()
-{
-    FragColor = texture(ourTexture, TexCoord);
-}
+void main() { FragColor = texture(ourTexture, TexCoord); }

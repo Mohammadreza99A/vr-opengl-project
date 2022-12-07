@@ -16,9 +16,9 @@ set(INCLUDE_PATH "/usr/include/glm")
 set(LIB_PATH "/usr/lib")
 
 # for glad library
-add_subdirectory(include/ThirdParty/glad/)
+add_subdirectory(vendor/glad/)
 
-include_directories(${INCLUDE_PATH} include/ThirdParty/stb/)
+include_directories(${INCLUDE_PATH} vendor/stb/)
 link_directories(${LIB_PATH})
 
 file(GLOB SOURCE_FILES "src/*.cpp" "include/*.h" "include/*.hpp")
