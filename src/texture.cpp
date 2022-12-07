@@ -1,9 +1,9 @@
 #include "texture.h"
 
 Texture::Texture(const std::string &path, const bool vflip)
-    : textID(0), dataBuffer(nullptr), filePath(path), width(0), height(0), nrChannels(0), flip(true)
+    : textID(0), dataBuffer(nullptr), filePath(path), width(0), height(0), nrChannels(0), flip(vflip)
 {
-    if vflip
+    /*if(vflip)
         stbi_set_flip_vertically_on_load(true);
     glGenTextures(1, &textID);
     glBindTexture(GL_TEXTURE_2D, textID);
@@ -15,7 +15,7 @@ Texture::Texture(const std::string &path, const bool vflip)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    dataBuffer = stbi_load(pathToHouse.c_str(), &width, &height, &nrChannels, 0);
+    dataBuffer = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
     if (dataBuffer)
     {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, dataBuffer);
@@ -25,19 +25,21 @@ Texture::Texture(const std::string &path, const bool vflip)
     {
         std::cout << "Failed to load texture" << std::endl;
     }
-    stbi_image_free(dataBuffer);
+    stbi_image_free(dataBuffer);*/
 }
 
-
-Texture::~Texture(){
+Texture::~Texture()
+{
     glDeleteTextures(1, &textID);
 }
 
-void Texture::bind(unsigned int slot){
+void Texture::Bind(unsigned int slot) const
+{
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, textID);
 }
 
-void Texture::unbind(unsigned int slot){
+void Texture::Unbind() const
+{
     glBindTexture(GL_TEXTURE_2D, 0);
 }

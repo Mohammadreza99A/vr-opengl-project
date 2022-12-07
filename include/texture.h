@@ -9,7 +9,6 @@
 #include <iostream>
 #include "stb_image.h"
 
-
 // Inspired by the provided code in the practicals of the course
 class Texture
 {
@@ -21,10 +20,10 @@ private:
     bool flip;
 
 public:
-    Texture(const std::string &path, const bool vflip);
+    Texture(const std::string &path, const bool vflip=true);
     ~Texture();
-    void bind(unsigned int slot = 0) const;
-    void unbind() const;
+    void Bind(unsigned int slot = 0) const;
+    void Unbind() const;
 };
 
 #endif

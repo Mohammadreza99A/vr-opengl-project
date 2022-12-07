@@ -88,6 +88,21 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
     // Rendering
+    int width, height, nrChannels;
+    std::string pathToHosuTex=PATH_TO_TEXTURE "/Farm_house_D.jpeg";
+    unsigned char *data = stbi_load(pathToHosuTex.c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    //Texture textureHouse(pathToHosuTex);
+
 
     glfwSwapInterval(1);
 

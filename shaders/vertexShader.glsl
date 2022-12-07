@@ -4,6 +4,7 @@ in vec2 tex_coords;
 in vec3 normal;
 
 out vec3 v_specular;
+out vec2 TexCoord;
 
 uniform mat4 M;
 uniform mat4 itM;
@@ -16,6 +17,7 @@ float spec_strength = 0.8;
 
 void main()
 {
+	TexCoord = tex_coord;
 	vec4 frag_coord = M * vec4(position, 1.0);
 	gl_Position = P * V * frag_coord;
 
