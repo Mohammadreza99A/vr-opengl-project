@@ -1,10 +1,10 @@
 #version 330 core
 in vec3 position;
-in vec2 tex_coords;
+in vec2 tex_coord;
 in vec3 normal;
 
 out vec3 v_specular;
-out vec2 TexCoord;
+out vec2 tex_vcoord;
 
 uniform mat4 M;
 uniform mat4 itM;
@@ -16,7 +16,7 @@ uniform vec3 u_view_pos;
 float spec_strength = 0.8;
 
 void main() {
-  TexCoord = tex_coord;
+  tex_vcoord = tex_coord;
   vec4 frag_coord = M * vec4(position, 1.0);
   gl_Position = P * V * frag_coord;
 

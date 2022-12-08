@@ -91,8 +91,24 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
     // Rendering
+    //Rendering
+	// load and create a texture 
+    // -------------------------
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	stbi_set_flip_vertically_on_load(true);
+    // load image, create texture and generate mipmaps
+
     int width, height, nrChannels;
-    std::string pathToHosuTex = PATH_TO_TEXTURE "/Farm_house_D.jpeg";
+    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/Farm_house_D.jpeg";
     unsigned char *data = stbi_load(pathToHosuTex.c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -117,6 +133,12 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // bind Texture
+		glActiveTexture(GL_TEXTURE0);
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+
+        
         shader.use();
         // 1. send the relevant uniform to the shader
         shader.setMatrix4("M", model);
@@ -128,6 +150,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         house.draw();
 
+        glDepthFunc(GL_LESS);
         fps(currentTime);
         glfwSwapBuffers(window);
     }

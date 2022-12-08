@@ -22,8 +22,8 @@ private:
 public:
     Texture(const std::string &path, const bool vflip = true);
     ~Texture();
-    void Bind(unsigned int slot = 0) const;
-    void Unbind() const;
+    void bind(unsigned int slot = 0) const;
+    void unbind() const;
 };
 
 #endif

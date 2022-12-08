@@ -2,8 +2,8 @@
 out vec4 FragColor;
 precision mediump float;
 
-in vec2 TexCoord;
-uniform sampler2D ourTexture;
+in vec2 tex_vcoord;
+uniform sampler2D texture1;
 in vec3 v_specular;
 
-void main() { FragColor = texture(ourTexture, TexCoord); }
+void main() { FragColor = texture(texture1, tex_vcoord); }
