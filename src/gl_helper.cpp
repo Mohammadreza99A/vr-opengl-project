@@ -1,5 +1,7 @@
 #include "gl_helper.h"
 
+Camera camera(glm::vec3(0.0, 0.0, 0.1));
+
 GLFWwindow *glHelper::initGlfwWindow()
 {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -51,6 +53,18 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
 
+    Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
+
+    char path[] = PATH_TO_OBJECTS "/house.obj";
+
+    Object house(path);
+    house.makeObject(shader);
+    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
+    house.model=glm::rotate(house.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
+	house.model=glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
+
+    const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
+
     double prev = 0;
     int deltaFrame = 0;
     // fps function
@@ -67,14 +81,41 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
+
+
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 perspective = camera.GetProjectionMatrix();
+
+    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
+    Texture textureHouse(pathToHosuTex);
+
+    glfwSwapInterval(1);
+
     // Main loop until escape key is pressed
     while (!glfwWindowShouldClose(window))
     {
+        view = camera.GetViewMatrix();
         glfwPollEvents();
         double currentTime = glfwGetTime();
-
+        
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // bind Texture
+        textureHouse.bind();
+
+        shader.use();
+        // 1. send the relevant uniform to the shader
+        shader.setMatrix4("M", house.model);
+        shader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
+        shader.setMatrix4("V", view);
+        shader.setMatrix4("P", perspective);
+        shader.setVector3f("u_view_pos", camera.Position);
+        shader.setVector3f("u_light_pos", light_pos);
+
+        house.draw();
+
+        glDepthFunc(GL_LESS);
         fps(currentTime);
         glfwSwapBuffers(window);
     }
@@ -98,6 +139,30 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
         std::cout << "Space key was pressed" << std::endl;
+
+    // Camera input handling
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(UP, 1);
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(DOWN, 1);
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(LEFT, 1);
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(RIGHT, 1);
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(FORWARD, 1);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboardMovement(BACKWARD, 1);
+
+    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(-1, 0.0,1);
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(1, 0.0,1);
 }
 
 void glHelper::cleanup(GLFWwindow *window)
