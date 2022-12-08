@@ -7,7 +7,6 @@
 #include <IL/il.h>
 
 #include <iostream>
-#include "stb_image.h"
 
 // Inspired by the provided code in the practicals of the course
 class Texture

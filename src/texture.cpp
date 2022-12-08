@@ -1,9 +1,12 @@
 #include "texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 Texture::Texture(const std::string &path, const bool vflip)
     : textID(0), dataBuffer(nullptr), filePath(path), width(0), height(0), nrChannels(0), flip(vflip)
 {
-    /*if(vflip)
+    if(vflip)
         stbi_set_flip_vertically_on_load(true);
     glGenTextures(1, &textID);
     glBindTexture(GL_TEXTURE_2D, textID);
@@ -25,7 +28,7 @@ Texture::Texture(const std::string &path, const bool vflip)
     {
         std::cout << "Failed to load texture" << std::endl;
     }
-    stbi_image_free(dataBuffer);*/
+    stbi_image_free(dataBuffer);
 }
 
 Texture::~Texture()
