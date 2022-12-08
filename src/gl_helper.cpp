@@ -1,6 +1,5 @@
 #include "gl_helper.h"
 
-
 Camera camera(glm::vec3(0.0, 0.0, 0.1));
 
 GLFWwindow *glHelper::initGlfwWindow()
@@ -105,7 +104,6 @@ void glHelper::mainLoop(GLFWwindow *window)
         // bind Texture
         textureHouse.bind();
 
-        
         shader.use();
         // 1. send the relevant uniform to the shader
         shader.setMatrix4("M", model);
@@ -162,9 +160,9 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         camera.ProcessKeyboardMovement(BACKWARD, 1);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0);
+        camera.ProcessKeyboardRotation(-1, 0.0,1);
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(1, 0.0);
+        camera.ProcessKeyboardRotation(1, 0.0,1);
 }
 
 void glHelper::cleanup(GLFWwindow *window)
