@@ -55,10 +55,13 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
 
-    char path[] = PATH_TO_OBJECTS "/Farm_house.obj";
+    char path[] = PATH_TO_OBJECTS "/house.obj";
 
     Object house(path);
     house.makeObject(shader);
+    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
+    house.model=glm::rotate(house.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
+	house.model=glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
 
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
@@ -78,16 +81,12 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
-    glm::mat4 model = glm::mat4(1.0);
-    model = glm::translate(model, glm::vec3(0.0, 0.0, -2.0));
-    model = glm::scale(model, glm::vec3(0.5, 0.5, 1.0));
 
-    glm::mat4 inverseModel = glm::transpose(glm::inverse(model));
 
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
-    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/Farm_house_D.jpeg";
+    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
     glfwSwapInterval(1);
@@ -98,7 +97,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         view = camera.GetViewMatrix();
         glfwPollEvents();
         double currentTime = glfwGetTime();
-
+        
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // bind Texture
@@ -106,8 +106,8 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         shader.use();
         // 1. send the relevant uniform to the shader
-        shader.setMatrix4("M", model);
-        shader.setMatrix4("itM", inverseModel);
+        shader.setMatrix4("M", house.model);
+        shader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
         shader.setMatrix4("V", view);
         shader.setMatrix4("P", perspective);
         shader.setVector3f("u_view_pos", camera.Position);
