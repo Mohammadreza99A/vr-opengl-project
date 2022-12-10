@@ -59,5 +59,7 @@ public:
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboardMovement(Camera_Movement direction, GLfloat deltaTime);
     void ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, GLboolean constrainPitch = true);
+    void processMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+    void processMouseScroll(Camera_Movement direction, GLfloat deltaTime);
 };
 #endif

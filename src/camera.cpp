@@ -66,6 +66,37 @@ void Camera::ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTi
     updateCameraVectors();
 }
 
+void Camera::processMouseMovement(float xoffset, float yoffset,
+                                  GLboolean constrainPitch)
+{
+    xoffset *= this->MouseSensitivity;
+    yoffset *= this->MouseSensitivity;
+
+    this->Yaw += xoffset;
+    this->Pitch += yoffset;
+
+    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    if (constrainPitch)
+    {
+        if (this->Pitch > 89.0f)
+            this->Pitch = 89.0f;
+        if (this->Pitch < -89.0f)
+            this->Pitch = -89.0f;
+    }
+
+    // update Front, Right and Up Vectors using the updated Euler angles
+    updateCameraVectors();
+}
+
+void Camera::processMouseScroll(Camera_Movement direction, GLfloat deltaTime)
+{
+    GLfloat velocity = this->MovementSpeed * deltaTime;
+    if (direction == FORWARD)
+        this->Position += this->Front * velocity;
+    if (direction == BACKWARD)
+        this->Position -= this->Front * velocity;
+}
+
 void Camera::updateCameraVectors()
 {
     // Calculate the new Front vector
