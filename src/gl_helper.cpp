@@ -1,6 +1,6 @@
 #include "gl_helper.h"
 
-Camera camera(glm::vec3(0.0, 0.0, 0.1));
+Camera camera(glm::vec3(0.0, 0.0, 10));
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -55,14 +55,28 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
 
-    char path[] = PATH_TO_OBJECTS "/house.obj";
+    char path1[] = PATH_TO_OBJECTS "/farm_house.obj";
 
-    Object house(path);
+    Object house(path1);
     house.makeObject(shader);
-    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
+    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, 0.0));
     house.model=glm::rotate(house.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
-	house.model=glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
+	house.model=glm::scale(house.model, glm::vec3(0.5, 0.5, 0.5));
 
+    char path2[] = PATH_TO_OBJECTS "/mill.obj";
+    Object mill(path2);
+    mill.makeObject(shader);
+    mill.model=glm::translate(mill.model, glm::vec3(15.0, 0.0, 0.0));
+    mill.model=glm::scale(mill.model, glm::vec3(0.5, 0.5, 0.5));
+
+    char path3[] = PATH_TO_OBJECTS "/turbines.obj";
+    Object turbine(path3);
+    turbine.makeObject(shader);
+    turbine.model=glm::translate(turbine.model, glm::vec3(15.0, 0.0, 0.0));
+    turbine.model=glm::scale(turbine.model, glm::vec3(0.5, 0.5, 0.5));
+
+    
+    
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
     double prev = 0;
@@ -79,6 +93,7 @@ void glHelper::mainLoop(GLFWwindow *window)
             deltaFrame = 0;
             std::cout << "\r FPS: " << fpsCount << std::endl;
         }
+        return deltaTime;
     };
 
 
@@ -86,8 +101,11 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
-    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
-    Texture textureHouse(pathToHosuTex);
+    std::string path_to_house_tex = PATH_TO_TEXTURE "/house/house_texture.jpg";
+    Texture textureHouse(path_to_house_tex);
+
+    std::string path_to_windmill_tex = PATH_TO_TEXTURE "/windmill/windmill_diffuse.jpg";
+    Texture textureWindmill(path_to_windmill_tex);
 
     glfwSwapInterval(1);
 
@@ -102,7 +120,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // bind Texture
-        textureHouse.bind();
+        textureHouse.bind(0);
+        textureWindmill.bind(1);
 
         shader.use();
         // 1. send the relevant uniform to the shader
@@ -112,11 +131,28 @@ void glHelper::mainLoop(GLFWwindow *window)
         shader.setMatrix4("P", perspective);
         shader.setVector3f("u_view_pos", camera.Position);
         shader.setVector3f("u_light_pos", light_pos);
+        shader.setInteger("f_texture", 0);
+
 
         house.draw();
+        
+        shader.setInteger("f_texture", 1);
 
+        shader.setMatrix4("M", mill.model);
+		shader.setMatrix4("itM", glm::transpose(glm::inverse(mill.model)));
+        mill.draw();
+
+		shader.setMatrix4("M", turbine.model);
+        shader.setMatrix4("itM", glm::transpose(glm::inverse(turbine.model)));
+        turbine.draw();
+
+        //rotate
+        double deltaTime = fps(currentTime);
+        float degree = deltaTime*100 >25 ? 14.0 : 8.0;
+        turbine.model = glm::rotate(turbine.model,glm::radians(degree),glm::vec3(0.0,0.0,1.0));
+        
         glDepthFunc(GL_LESS);
-        fps(currentTime);
+        
         glfwSwapBuffers(window);
     }
 }

@@ -18,7 +18,7 @@ float spec_strength = 0.8;
 void main() {
   tex_vcoord = tex_coord;
   vec4 frag_coord = M * vec4(position, 1.0);
-  gl_Position = P * M * V * frag_coord;
+  gl_Position = P * V * frag_coord;
 
   vec3 N = vec3(itM * vec4(normal, 1.0));
   vec3 L = normalize(u_light_pos - frag_coord.xyz);
