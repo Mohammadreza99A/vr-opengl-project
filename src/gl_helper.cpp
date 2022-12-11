@@ -18,8 +18,10 @@ GLFWwindow *glHelper::initGlfwWindow()
 void glHelper::printWelcomeMessage()
 {
     std::cout << "Commands for camera actions:" << std::endl;
-    std::cout << "\t - For rotation you can also use the mouse by hold left mouse key and moving it" << std::endl;
-    std::cout << "\t - Scroll wheel (vertical) of the mouse can be used to move forward and backward" << std::endl;
+    std::cout << "\t - for movement, use arrow keys" << std::endl;
+    std::cout << "\t - for rotation, use IJKL keys" << std::endl;
+    std::cout << "\t - for rotation you can also use the mouse by hold left mouse key and moving it" << std::endl;
+    std::cout << "\t - scroll wheel (vertical) of the mouse can be used to move forward and backward" << std::endl;
 }
 
 void glHelper::printContextInfo()
@@ -102,6 +104,22 @@ void glHelper::mainLoop(GLFWwindow *window)
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
+    // Loading cube map for skybox
+    std::vector<std::string> faces;
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posx.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negx.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posy.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negy.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posz.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negz.jpg");
+    SkyBox skyboxCubemap(faces);
+    skyboxCubemap.load();
+
+    Shader skyboxShader("shaders/skyBoxV.glsl", "shaders/skyBoxF.glsl");
+
+    skyboxShader.use();
+    skyboxShader.setInteger("skybox", 0);
+
     glfwSwapInterval(1);
 
     // Main loop until escape key is pressed
@@ -128,7 +146,15 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         house.draw();
 
-        glDepthFunc(GL_LESS);
+        // draw skybox as last
+        glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setMatrix4("V", view);
+        skyboxShader.setMatrix4("P", perspective);
+        skyboxCubemap.draw();
+        glDepthFunc(GL_LESS); // set depth function back to default
+
         fps(currentTime);
         glfwSwapBuffers(window);
     }
@@ -154,28 +180,24 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         std::cout << "Space key was pressed" << std::endl;
 
     // Camera input handling
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
+    // Movement with Arrow keys
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(UP, 1);
+        camera.ProcessKeyboardMovement(FORWARD, 0.5);
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(DOWN, 1);
-
+        camera.ProcessKeyboardMovement(BACKWARD, 0.5);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(LEFT, 1);
+        camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(RIGHT, 1);
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(FORWARD, 1);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(BACKWARD, 1);
-
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0, 1);
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+    
+    // Rotation with IJKL keys
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(1, 0.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(-1, 0.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(0.0, 1.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(0.0, -1.0, 1);
 }
 
 void glHelper::mouse_button_callback(GLFWwindow *window, int button,
