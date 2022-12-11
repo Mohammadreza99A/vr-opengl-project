@@ -96,7 +96,7 @@ Object::Object(const char *path)
     numVertices = vertices.size();
 }
 
-void Object::makeObject(Shader shader, bool texture)
+void Object::makeObject(Shader& shader, bool texture)
 {
     /* This is a working but not perfect solution, you can improve it if you need/want
      * What happens if you call this function twice on an Model ?

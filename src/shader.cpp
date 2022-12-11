@@ -121,3 +121,7 @@ GLuint Shader::compileProgram(GLuint vertexShader, GLuint fragmentShader)
     }
     return programID;
 }
+
+void Shader::cleanup(){
+    glUseProgram(0);
+}
