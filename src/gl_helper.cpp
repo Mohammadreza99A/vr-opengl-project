@@ -1,6 +1,9 @@
 #include "gl_helper.h"
 
 Camera camera(glm::vec3(0.0, 0.0, 0.1));
+static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
+static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
+static double prevScrollYOffset = 0;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -17,6 +20,8 @@ void glHelper::printWelcomeMessage()
     std::cout << "Commands for camera actions:" << std::endl;
     std::cout << "\t - for movement, use arrow keys" << std::endl;
     std::cout << "\t - for rotation, use IJKL keys" << std::endl;
+    std::cout << "\t - for rotation you can also use the mouse by hold left mouse key and moving it" << std::endl;
+    std::cout << "\t - scroll wheel (vertical) of the mouse can be used to move forward and backward" << std::endl;
 }
 
 void glHelper::printContextInfo()
@@ -31,10 +36,15 @@ void glHelper::initCallbacks(GLFWwindow *window)
 {
     // Keyboard Callback
     glfwSetKeyCallback(window, key_callback);
+    // Mouse actions callback
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouse_cursor_callback);
+    glfwSetScrollCallback(window, mouse_scroll_callback);
     // Framebuffer resize callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // Ensure we can capture the escape key being pressed below
+    // Ensure we can capture the keyboard keys and mouse buttons
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 }
 
 void glHelper::init(GLFWwindow *window)
@@ -66,7 +76,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Object house(path);
     house.makeObject(shader);
-    house.model = glm::translate(house.model, glm::vec3(0.0, 0.0, -30.0));
+    house.model = glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
     house.model = glm::rotate(house.model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
 
@@ -178,8 +188,7 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(RIGHT, 0.5);
-
+    
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(1, 0.0, 1);
@@ -189,6 +198,59 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         camera.ProcessKeyboardRotation(0.0, 1.0, 1);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(0.0, -1.0, 1);
+}
+
+void glHelper::mouse_button_callback(GLFWwindow *window, int button,
+                                     int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        if (!leftMouseButtonPress)
+        {
+            leftMouseButtonPress = true;
+            firstLeftMouseButton = true;
+        }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        if (leftMouseButtonPress)
+        {
+            leftMouseButtonPress = false;
+            firstLeftMouseButton = true;
+        }
+}
+
+void glHelper::mouse_cursor_callback(GLFWwindow *window, double xposIn, double yposIn)
+{
+    if (!leftMouseButtonPress)
+        return;
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstLeftMouseButton)
+    {
+        prevMouseXPress = xpos;
+        prevMouseYPress = ypos;
+        firstLeftMouseButton = false;
+    }
+
+    float xoffset = xpos - prevMouseXPress;
+    float yoffset = prevMouseYPress - ypos; // reversed since y-coordinates go from bottom to top
+
+    prevMouseXPress = xpos;
+    prevMouseYPress = ypos;
+
+    camera.processMouseMovement(xoffset, yoffset);
+}
+
+void glHelper::mouse_scroll_callback(GLFWwindow *window,
+                                     double xoffset, double yoffset)
+{
+    if (prevScrollYOffset + yoffset > prevScrollYOffset)
+        camera.ProcessKeyboardMovement(FORWARD, 1);
+    if (prevScrollYOffset + yoffset < prevScrollYOffset)
+        camera.ProcessKeyboardMovement(BACKWARD, 1);
+
+    prevScrollYOffset += yoffset;
 }
 
 void glHelper::cleanup(GLFWwindow *window)
