@@ -12,6 +12,13 @@ GLFWwindow *glHelper::initGlfwWindow()
     return glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, NULL, NULL);
 }
 
+void glHelper::printWelcomeMessage()
+{
+    std::cout << "Commands for camera actions:" << std::endl;
+    std::cout << "\t - for movement, use arrow keys" << std::endl;
+    std::cout << "\t - for rotation, use IJKL keys" << std::endl;
+}
+
 void glHelper::printContextInfo()
 {
     std::cout << "Vendor: \t" << glGetString(GL_VENDOR) << std::endl;
@@ -59,9 +66,9 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Object house(path);
     house.makeObject(shader);
-    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
-    house.model=glm::rotate(house.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
-	house.model=glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
+    house.model = glm::translate(house.model, glm::vec3(0.0, 0.0, -30.0));
+    house.model = glm::rotate(house.model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
+    house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
 
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
@@ -81,13 +88,27 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
-
-
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
+
+    // Loading cube map for skybox
+    std::vector<std::string> faces;
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posx.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negx.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posy.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negy.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/posz.jpg");
+    faces.push_back(PATH_TO_TEXTURE "/skybox/negz.jpg");
+    SkyBox skyboxCubemap(faces);
+    skyboxCubemap.load();
+
+    Shader skyboxShader("shaders/skyBoxV.glsl", "shaders/skyBoxF.glsl");
+
+    skyboxShader.use();
+    skyboxShader.setInteger("skybox", 0);
 
     glfwSwapInterval(1);
 
@@ -97,7 +118,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         view = camera.GetViewMatrix();
         glfwPollEvents();
         double currentTime = glfwGetTime();
-        
+
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -115,7 +136,15 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         house.draw();
 
-        glDepthFunc(GL_LESS);
+        // draw skybox as last
+        glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setMatrix4("V", view);
+        skyboxShader.setMatrix4("P", perspective);
+        skyboxCubemap.draw();
+        glDepthFunc(GL_LESS); // set depth function back to default
+
         fps(currentTime);
         glfwSwapBuffers(window);
     }
@@ -141,28 +170,25 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         std::cout << "Space key was pressed" << std::endl;
 
     // Camera input handling
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
+    // Movement with Arrow keys
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(UP, 1);
+        camera.ProcessKeyboardMovement(FORWARD, 0.5);
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(DOWN, 1);
-
+        camera.ProcessKeyboardMovement(BACKWARD, 0.5);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(LEFT, 1);
+        camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(RIGHT, 1);
+        camera.ProcessKeyboardMovement(RIGHT, 0.5);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(FORWARD, 1);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(BACKWARD, 1);
-
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0,1);
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(1, 0.0,1);
+    // Rotation with IJKL keys
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(1, 0.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(-1, 0.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(0.0, 1.0, 1);
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        camera.ProcessKeyboardRotation(0.0, -1.0, 1);
 }
 
 void glHelper::cleanup(GLFWwindow *window)

@@ -7,20 +7,23 @@
 #include <IL/il.h>
 
 #include <iostream>
-
 #include <map>
+#include <vector>
+
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
 #include "texture.h"
+#include "sky_box.h"
 
 #define WIN_TITLE "VR OpenGL Project"
-#define WIN_WIDTH 512
-#define WIN_HEIGHT 512
+#define WIN_WIDTH 1024
+#define WIN_HEIGHT 720
 
 namespace glHelper
 {
     GLFWwindow *initGlfwWindow();
+    void printWelcomeMessage();
     void printContextInfo();
     void initCallbacks(GLFWwindow *window);
     void init(GLFWwindow *window);
