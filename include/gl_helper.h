@@ -15,6 +15,7 @@
 #include "object.h"
 #include "texture.h"
 #include "sky_box.h"
+#include "terrain.h"
 
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024

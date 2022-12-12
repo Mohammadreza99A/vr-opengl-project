@@ -69,7 +69,6 @@ void glHelper::init(GLFWwindow *window)
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
-
     Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
 
     char path[] = PATH_TO_OBJECTS "/house.obj";
@@ -99,10 +98,19 @@ void glHelper::mainLoop(GLFWwindow *window)
     };
 
     glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 perspective = camera.GetProjectionMatrix();
+    glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
+
+    // change the scale of the terrain
+    glm::mat4 terrainModel = glm::mat4(1.0);
+    terrainModel = glm::translate(terrainModel, glm::vec3(5.3, 0.0, -40.0));
+    terrainModel = glm::rotate(terrainModel, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
+    terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
+
+    Terrain terrain;
+    terrain.init(512, 512);
 
     // Loading cube map for skybox
     std::vector<std::string> faces;
@@ -131,6 +139,9 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // draw the terrain
+        terrain.draw(terrainModel, view, perspective, light_pos, camera.Position);
 
         // bind Texture
         textureHouse.bind();
@@ -188,7 +199,8 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    
+        camera.ProcessKeyboardMovement(RIGHT, 0.5);
+
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(1, 0.0, 1);
