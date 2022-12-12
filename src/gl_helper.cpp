@@ -54,7 +54,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 {   
     // Sun
     Shader lightingShader("shaders/lightVertexShader.glsl", "shaders/lightFragShader.glsl");
-    Shader sunShader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
+    Shader sunShader("shaders/sunVertexShader.glsl", "shaders/sunFragShader.glsl");
 
 	char pathSun[] = PATH_TO_OBJECTS "/sphere_coarse.obj";
 
@@ -73,37 +73,38 @@ void glHelper::mainLoop(GLFWwindow *window)
 
 
 	double prev = 0;
-	int deltaFrame = 0;
-	//fps function
-	auto fps = [&](double currentTime) {
-		double deltaTime = currentTime - prev;
-		deltaFrame++;
-		if (deltaTime > 0.5) {
-			prev = currentTime;
-			const double fpsCount = (double)deltaFrame / deltaTime;
-			deltaFrame = 0;
-			std::cout << "\r FPS: " << fpsCount;
-			std::cout.flush();
-		}
-	};
+    int deltaFrame = 0;
+    // fps function
+    auto fps = [&](double now)
+    {
+        double deltaTime = now - prev;
+        deltaFrame++;
+        if (deltaTime > 0.5)
+        {
+            prev = now;
+            const double fpsCount = (double)deltaFrame / deltaTime;
+            deltaFrame = 0;
+            std::cout << "\r FPS: " << fpsCount << std::endl;
+        }
+    };
 
 
 	glm::vec3 light_pos = glm::vec3(1.0f, 2.0f, 2.0f);
 
 
 	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective = camera.GetProjectionMatrix();
+	glm::mat4 perspective =glm::perspective(1.0f,(float)WIN_WIDTH/(float)WIN_HEIGHT,0.01f, 1000.0f );
 
-    std::string pathToSunTex = PATH_TO_TEXTURE "/sun/sun_texture.jpg";
+    std::string pathToSunTex = PATH_TO_TEXTURE "/sun/sun_texture.jpeg";
     Texture textureSun(pathToSunTex);
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
-	float ambient = 0.15;
-	float diffuse = 0.5;
+	float ambient = 0.2;
+	float diffuse = 1.0;
 	float specular = 0.8;
 
-	glm::vec3 materialColour = glm::vec3(0.1f, 0.5f, 0.31f);
+	glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
 
 	//Rendering
 
@@ -113,9 +114,9 @@ void glHelper::mainLoop(GLFWwindow *window)
 	lightingShader.setFloat("light.ambient_strength", ambient);
 	lightingShader.setFloat("light.diffuse_strength", diffuse);
 	lightingShader.setFloat("light.specular_strength", specular);
-	lightingShader.setFloat("light.constant", 1.0);
-	lightingShader.setFloat("light.linear", 0.14);
-	lightingShader.setFloat("light.quadratic", 0.07);
+	// lightingShader.setFloat("light.constant", 1.0);
+	// lightingShader.setFloat("light.linear", 0.14);
+	// lightingShader.setFloat("light.quadratic", 0.07);
 
 
 	glfwSwapInterval(1);
@@ -136,7 +137,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 		lightingShader.setMatrix4("P", perspective);
 		lightingShader.setVector3f("u_view_pos", camera.Position);
 
-		auto delta =  glm::vec3(0.0f,  sin(currentTime) * 12.0f, cos(currentTime) * 12.0f);
+		auto delta =  glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);
 
 		// auto delta =  light_pos ;
 		//std::cout << delta.z <<std::endl;
@@ -146,15 +147,19 @@ void glHelper::mainLoop(GLFWwindow *window)
 
 
         textureSun.bind();
+        glm::vec3 sunColour = glm::vec3(1.0f, 1.0f, 1.0f);
+
         sun.model = glm::mat4(1.0f);
-        sun.model  = glm::translate(sun.model , delta);
-        sun.model  = glm::scale(sun.model , glm::vec3(1.0f)); 
+        sun.model = glm::translate(sun.model , delta);
+        sun.model = glm::scale(sun.model , glm::vec3(2.0f,2.0f,1.0f)); 
         sunShader.use();
         sunShader.setMatrix4("M", sun.model);
-		sunShader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
+		sunShader.setMatrix4("itM", glm::transpose(glm::inverse(sun.model)));
 		sunShader.setMatrix4("V", view);
 		sunShader.setMatrix4("P", perspective);
 		sunShader.setVector3f("u_view_pos", camera.Position);
+        sunShader.setVector3f("sunColour", sunColour);
+
         sun.draw();
 
         glDepthFunc(GL_LESS);
