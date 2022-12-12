@@ -51,28 +51,26 @@ void glHelper::init(GLFWwindow *window)
 }
 
 void glHelper::mainLoop(GLFWwindow *window)
-{   
+{
     // Sun
     Shader lightingShader("shaders/lightVertexShader.glsl", "shaders/lightFragShader.glsl");
     Shader sunShader("shaders/sunVertexShader.glsl", "shaders/sunFragShader.glsl");
 
-	char pathSun[] = PATH_TO_OBJECTS "/sphere_coarse.obj";
+    char pathSun[] = PATH_TO_OBJECTS "/sphere_coarse.obj";
 
-	Object sun(pathSun);
-	sun.makeObject(sunShader, false);
+    Object sun(pathSun);
+    sun.makeObject(sunShader, false);
 
     // House
     char pathHouse[] = PATH_TO_OBJECTS "/house.obj";
 
-    
     Object house(pathHouse);
     house.makeObject(lightingShader);
-    house.model=glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
-    house.model=glm::rotate(house.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
-	house.model=glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
+    house.model = glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
+    house.model = glm::rotate(house.model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
+    house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
 
-
-	double prev = 0;
+    double prev = 0;
     int deltaFrame = 0;
     // fps function
     auto fps = [&](double now)
@@ -88,89 +86,84 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
+    glm::vec3 light_pos = glm::vec3(1.0f, 2.0f, 2.0f);
 
-	glm::vec3 light_pos = glm::vec3(1.0f, 2.0f, 2.0f);
-
-
-	glm::mat4 view = camera.GetViewMatrix();
-	glm::mat4 perspective =glm::perspective(1.0f,(float)WIN_WIDTH/(float)WIN_HEIGHT,0.01f, 1000.0f );
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
     std::string pathToSunTex = PATH_TO_TEXTURE "/sun/sun_texture.jpeg";
     Texture textureSun(pathToSunTex);
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
-	float ambient = 0.2;
-	float diffuse = 1.0;
-	float specular = 0.8;
+    float ambient = 0.2;
+    float diffuse = 1.0;
+    float specular = 0.8;
 
-	glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
+    glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
 
-	//Rendering
+    // Rendering
 
-	lightingShader.use();
-	lightingShader.setFloat("shininess", 32.0f);
-	lightingShader.setVector3f("materialColour", materialColour);
-	lightingShader.setFloat("light.ambient_strength", ambient);
-	lightingShader.setFloat("light.diffuse_strength", diffuse);
-	lightingShader.setFloat("light.specular_strength", specular);
-	// lightingShader.setFloat("light.constant", 1.0);
-	// lightingShader.setFloat("light.linear", 0.14);
-	// lightingShader.setFloat("light.quadratic", 0.07);
+    lightingShader.use();
+    lightingShader.setFloat("shininess", 32.0f);
+    lightingShader.setVector3f("materialColour", materialColour);
+    lightingShader.setFloat("light.ambient_strength", ambient);
+    lightingShader.setFloat("light.diffuse_strength", diffuse);
+    lightingShader.setFloat("light.specular_strength", specular);
+    // lightingShader.setFloat("light.constant", 1.0);
+    // lightingShader.setFloat("light.linear", 0.14);
+    // lightingShader.setFloat("light.quadratic", 0.07);
 
+    glfwSwapInterval(1);
+    while (!glfwWindowShouldClose(window))
+    {
+        view = camera.GetViewMatrix();
+        glfwPollEvents();
+        double currentTime = glfwGetTime();
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glfwSwapInterval(1);
-	while (!glfwWindowShouldClose(window)) {
-		view = camera.GetViewMatrix();
-		glfwPollEvents();
-		double currentTime = glfwGetTime();
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
         // bind Texture
         textureHouse.bind();
-		lightingShader.use();
+        lightingShader.use();
 
-		lightingShader.setMatrix4("M", house.model);
-		lightingShader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
-		lightingShader.setMatrix4("V", view);
-		lightingShader.setMatrix4("P", perspective);
-		lightingShader.setVector3f("u_view_pos", camera.Position);
+        lightingShader.setMatrix4("M", house.model);
+        lightingShader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
+        lightingShader.setMatrix4("V", view);
+        lightingShader.setMatrix4("P", perspective);
+        lightingShader.setVector3f("u_view_pos", camera.Position);
 
-		auto delta =  glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);
+        auto delta = glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);
 
-		// auto delta =  light_pos ;
-		//std::cout << delta.z <<std::endl;
-		lightingShader.setVector3f("light.light_pos", delta);
+        // auto delta =  light_pos ;
+        // std::cout << delta.z <<std::endl;
+        lightingShader.setVector3f("light.light_pos", delta);
 
-		house.draw();
-
+        house.draw();
 
         textureSun.bind();
         glm::vec3 sunColour = glm::vec3(1.0f, 1.0f, 1.0f);
 
         sun.model = glm::mat4(1.0f);
-        sun.model = glm::translate(sun.model , delta);
-        sun.model = glm::scale(sun.model , glm::vec3(2.0f,2.0f,1.0f)); 
+        sun.model = glm::translate(sun.model, delta);
+        sun.model = glm::scale(sun.model, glm::vec3(2.0f, 2.0f, 1.0f));
         sunShader.use();
         sunShader.setMatrix4("M", sun.model);
-		sunShader.setMatrix4("itM", glm::transpose(glm::inverse(sun.model)));
-		sunShader.setMatrix4("V", view);
-		sunShader.setMatrix4("P", perspective);
-		sunShader.setVector3f("u_view_pos", camera.Position);
+        sunShader.setMatrix4("itM", glm::transpose(glm::inverse(sun.model)));
+        sunShader.setMatrix4("V", view);
+        sunShader.setMatrix4("P", perspective);
+        sunShader.setVector3f("u_view_pos", camera.Position);
         sunShader.setVector3f("sunColour", sunColour);
 
         sun.draw();
 
         glDepthFunc(GL_LESS);
-		fps(currentTime);
-		glfwSwapBuffers(window);
-	}
-
+        fps(currentTime);
+        glfwSwapBuffers(window);
+    }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-
 }
 
 void glHelper::error_callback(int error, const char *description)
@@ -212,9 +205,9 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         camera.ProcessKeyboardMovement(BACKWARD, 1);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0,1);
+        camera.ProcessKeyboardRotation(-1, 0.0, 1);
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(1, 0.0,1);
+        camera.ProcessKeyboardRotation(1, 0.0, 1);
 }
 
 void glHelper::cleanup(GLFWwindow *window)
