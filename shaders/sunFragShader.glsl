@@ -10,5 +10,5 @@ uniform vec3 sunColour;
 void main() { 
     vec4 frag_light = vec4(sunColour , 1.0);
     FragColor = texture(texture1, tex_vcoord) * frag_light;
-     }
+     } 
 
