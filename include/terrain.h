@@ -11,6 +11,9 @@
 class Terrain
 {
 private:
+   static const GLint SIZE = 4096;
+   static const GLint VERTEX_COUNT = 512;
+
    GLuint _vao;
    GLuint _vbo;
    GLuint _vbo_normals;
@@ -18,18 +21,16 @@ private:
    GLuint _pid;
    Shader *shader;
 
-   unsigned int sub_x;
-   unsigned int sub_y;
+   unsigned int x;
+   unsigned int z;
 
    GLfloat *vertices = NULL;
-   GLuint *indices = NULL;
    GLfloat *normals = NULL;
+   GLfloat *textureCoords = NULL;
+   GLuint *indices = NULL;
 
    unsigned int nb_vertices;
    unsigned int nb_indices;
-
-   std::vector<std::vector<float>> heightmap;
-   std::vector<std::vector<std::vector<float>>> heightmap_normals;
 
    void generate_terrain();
    void set_indices();

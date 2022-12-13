@@ -1,43 +1,38 @@
 #version 330 core
 
-in vec3 frag_normal_transformed;
-in vec3 frag_position;
+// in vec2 pass_textureCoordinates;
+in vec3 surfaceNormal;
+in vec3 toLightVector;
+in vec3 toCameraVector;
 
-uniform vec3 camera_position;
-uniform vec3 light_position;
+out vec4 out_Color;
 
-out vec3 color;
+// uniform sampler2D modelTexture;
+uniform vec3 light_colour;
+// uniform float shineDamper;
+// uniform float reflectivity;
 
-in float frag_nontransfheight;
+void main(void){
 
-//colors the terrain depending on the height
-const vec3 COLOR[3] = vec3[](
-    vec3(0.0, 0.0, 1.0), //blue, water
-    vec3(0.0, 0.7, 0.0), // green, grass
-    vec3(0.8, 0.8, 0.8)); //gray/white, snowtops
+	vec3 unitNormal = normalize(surfaceNormal);
+	vec3 unitLightVector = normalize(toLightVector);
+	
+	float nDotl = dot(unitNormal,unitLightVector);
+	float brightness = max(nDotl,0.2);
+	vec3 diffuse = brightness * light_colour;
+	
+	vec3 unitVectorToCamera = normalize(toCameraVector);
+	vec3 lightDirection = -unitLightVector;
+	vec3 reflectedLightDirection = reflect(lightDirection,unitNormal);
+	
+	// float specularFactor = dot(reflectedLightDirection , unitVectorToCamera);
+	// specularFactor = max(specularFactor,0.0);
+	// float dampedFactor = pow(specularFactor,shineDamper);
+	// vec3 finalSpecular = dampedFactor * reflectivity * light_colour;
+	vec3 finalSpecular = light_colour;
+	
 
-void main(){
-   vec3 light_dir = normalize(light_position-frag_position);
-   float diffuse_light = 0.0;
+	// out_Color =  vec4(diffuse,1.0) * texture(modelTexture,pass_textureCoordinates) + vec4(finalSpecular,1.0);
+	out_Color =  vec4(diffuse,1.0) + vec4(finalSpecular,1.0);
 
-   vec3 reflexion = 2*frag_normal_transformed*dot(frag_normal_transformed, light_dir)-light_dir;
-   reflexion = normalize(reflexion);
-   vec3 view_dir = normalize(camera_position-frag_position);
-
-   reflexion = clamp(reflexion, 0.0, 1.0);
-
-   diffuse_light = dot(frag_normal_transformed, light_dir);
-
-   float lum = 0.8*diffuse_light;
-
-   float height = frag_nontransfheight/2.0+0.5;
-   vec3 pixel_colour = vec3(1.0);
-
-   if(height < 0.5){
-      pixel_colour = (1.0-height*2)*COLOR[0]+height*2*COLOR[1];
-   }else{
-      pixel_colour = (1.0-(height-0.5)*2)*COLOR[1]+(height-0.5)*2*COLOR[2];
-   }
-
-    color = pixel_colour*lum;
 }

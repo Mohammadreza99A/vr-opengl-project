@@ -8,52 +8,39 @@ Terrain::Terrain()
         exit(-1);
 }
 
-void Terrain::init(unsigned int sub_x, unsigned int sub_y)
+void Terrain::init(unsigned int gridX, unsigned int gridZ)
 {
 
     glGenVertexArrays(1, &_vao);
     glBindVertexArray(_vao);
 
-    this->sub_x = sub_x;
-    this->sub_y = sub_y;
-    nb_vertices = sub_x * sub_y;
-    unsigned int nb_quads = (sub_x - 1) * (sub_y - 1);
-    unsigned int nb_tris = nb_quads * 2;
-    nb_indices = nb_tris * 3;
+    int count = this->VERTEX_COUNT * this->VERTEX_COUNT;
+    this->x = gridX * this->SIZE;
+    this->z = gridZ * this->SIZE;
+    this->nb_vertices = count * 3;
+    this->nb_indices = 6 * (this->VERTEX_COUNT - 1) * (this->VERTEX_COUNT - 1);
 
-    vertices = new GLfloat[nb_vertices * 3];
-    indices = new GLuint[nb_indices];
-    normals = new GLfloat[nb_vertices * 3];
-
-    // fill the indices array
-    set_indices();
-
-    heightmap.resize(sub_x);
-    heightmap_normals.resize(sub_x);
-    for (unsigned int i = 0; i < sub_x; i++)
-    {
-        heightmap[i].resize(sub_y);
-        heightmap_normals[i].resize(sub_y);
-        for (unsigned int j = 0; j < sub_y; j++)
-        {
-            heightmap_normals[i][j].resize(3);
-        }
-    }
+    vertices = new GLfloat[this->nb_vertices];
+    normals = new GLfloat[this->nb_vertices];
+    indices = new GLuint[this->nb_indices];
+    textureCoords = new GLfloat[count * 2];
 
     // fills the buffers
     generate_terrain();
+    // fill the indices array
+    set_indices();
 
     glGenBuffers(1, &_vbo_normals);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
-    GLuint norm_id = glGetAttribLocation(_pid, "vertex_normal");
+    GLuint norm_id = glGetAttribLocation(_pid, "normal");
     glEnableVertexAttribArray(norm_id);
     glVertexAttribPointer(norm_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
     glGenBuffers(1, &_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 
     GLuint vpoint_id = glGetAttribLocation(_pid, "position");
     glEnableVertexAttribArray(vpoint_id);
@@ -72,6 +59,7 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection, 
     glBindVertexArray(_vao);
 
     shader->setVector3f("light_position", light_position);
+    shader->setVector3f("light_color", glm::vec3(0.5, 0.5, 0.5));
     shader->setVector3f("camera_position", camera_position);
 
     shader->setMatrix4("model", model);
@@ -97,6 +85,18 @@ void Terrain::cleanup()
         indices = NULL;
     }
 
+    if (textureCoords != NULL)
+    {
+        delete textureCoords;
+        textureCoords = NULL;
+    }
+
+    if (normals != NULL)
+    {
+        delete normals;
+        normals = NULL;
+    }
+
     if (shader != NULL)
     {
         delete shader;
@@ -110,49 +110,45 @@ void Terrain::cleanup()
 void Terrain::generate_terrain()
 {
 
-    for (uint j = 0; j < sub_y; j++)
+    int vertexPointer = 0;
+
+    for (size_t i = 0; i < this->VERTEX_COUNT; i++)
     {
-        for (uint i = 0; i < sub_x; i++)
+        for (size_t j = 0; j < this->VERTEX_COUNT; j++)
         {
+            GLfloat relX = (float)j / ((float)this->VERTEX_COUNT - 1);
+            GLfloat relZ = (float)i / ((float)this->VERTEX_COUNT - 1);
 
-            // makes that the relatives go from -1 to 1
-            GLfloat relative_x = (float(i) / (sub_x - 1)) * 2 - 1;
-            // rel_z not y as y is up
-            GLfloat relative_z = (float(j) / (sub_y - 1)) * 2 - 1;
-
-            unsigned int cur_pos = (j * sub_x + i) * 3;
-
-            vertices[cur_pos] = relative_x;
-            vertices[cur_pos + 1] = heightmap[i][j]; //(*this.*func)(relative_x, relative_z);
-            vertices[cur_pos + 2] = relative_z;
-
-            normals[cur_pos + 0] = heightmap_normals[i][j][0]; // cross_product_vec[0];
-            normals[cur_pos + 1] = heightmap_normals[i][j][1];
-            normals[cur_pos + 2] = heightmap_normals[i][j][2];
+            this->vertices[vertexPointer * 3] = relX * this->SIZE;
+            this->vertices[vertexPointer * 3 + 1] = 0;
+            this->vertices[vertexPointer * 3 + 2] = relZ * this->SIZE;
+            this->normals[vertexPointer * 3] = 0;
+            this->normals[vertexPointer * 3 + 1] = 1;
+            this->normals[vertexPointer * 3 + 2] = 0;
+            this->textureCoords[vertexPointer * 2] = relX;
+            this->textureCoords[vertexPointer * 2 + 1] = relZ;
+            vertexPointer++;
         }
     }
 }
 
 void Terrain::set_indices()
 {
-    for (uint j = 0; j < sub_y - 1; j++)
+    int pointer = 0;
+    for (size_t gz = 0; gz < this->VERTEX_COUNT - 1; gz++)
     {
-        for (uint i = 0; i < sub_x - 1; i++)
+        for (size_t gx = 0; gx < this->VERTEX_COUNT - 1; gx++)
         {
-            unsigned int v0 = j * sub_x + i;
-            unsigned int v1 = j * sub_x + i + 1;
-            unsigned int v2 = (j + 1) * sub_x + i;
-            unsigned int v3 = (j + 1) * sub_x + i + 1;
-
-            unsigned int index_ptr = (j * (sub_x - 1) + i) * 6;
-
-            indices[index_ptr] = v0;
-            indices[index_ptr + 1] = v3;
-            indices[index_ptr + 2] = v1;
-
-            indices[index_ptr + 3] = v0;
-            indices[index_ptr + 4] = v2;
-            indices[index_ptr + 5] = v3;
+            int topLeft = (gz * this->VERTEX_COUNT) + gx;
+            int topRight = topLeft + 1;
+            int bottomLeft = ((gz + 1) * this->VERTEX_COUNT) + gx;
+            int bottomRight = bottomLeft + 1;
+            this->indices[pointer++] = topLeft;
+            this->indices[pointer++] = bottomLeft;
+            this->indices[pointer++] = topRight;
+            this->indices[pointer++] = topRight;
+            this->indices[pointer++] = bottomLeft;
+            this->indices[pointer++] = bottomRight;
         }
     }
 }
