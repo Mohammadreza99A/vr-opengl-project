@@ -1,6 +1,6 @@
 #include "gl_helper.h"
 
-Camera camera(glm::vec3(0.0, 0.0, 10.0));
+Camera camera(glm::vec3(0.0, 10.0, 0.0));
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -75,7 +75,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Object house(path);
     house.makeObject(shader);
-    house.model = glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
+    house.model = glm::translate(house.model, glm::vec3(5.3, 0.5, -30.0));
     house.model = glm::rotate(house.model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
 
@@ -105,12 +105,12 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     // change the scale of the terrain
     glm::mat4 terrainModel = glm::mat4(1.0);
-    terrainModel = glm::translate(terrainModel, glm::vec3(-30.0, 0.0, -30.0));
+    terrainModel = glm::scale(terrainModel, glm::vec3(256.0, 0.0, 256.0));
+    // terrainModel = glm::translate(terrainModel, glm::vec3(0.0, 0.0, 0.0));
     // terrainModel = glm::rotate(terrainModel, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
-    terrainModel = glm::scale(terrainModel, glm::vec3(100.0, 0.0, 100.0));
 
     Terrain terrain;
-    terrain.init(0, 0);
+    terrain.init(512, 512);
 
     // Loading cube map for skybox
     std::vector<std::string> faces;
@@ -141,7 +141,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // draw the terrain
-        terrain.draw(terrainModel, view, perspective, light_pos, camera.Position);
+        terrain.draw(terrainModel, view, perspective, light_pos, camera.Position, true, true);
 
         // bind Texture
         textureHouse.bind();

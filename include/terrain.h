@@ -8,33 +8,17 @@
 
 #include "shader.h"
 
+#define PROFILING 1
+
+enum Function_select
+{
+   select_linear,
+   select_ease, // ease is a polynomial that gives a smooth result better than linear but not as realistic as perlin
+   select_perlin
+};
+
 class Terrain
 {
-private:
-   static const GLint SIZE = 4096;
-   static const GLint VERTEX_COUNT = 512;
-
-   GLuint _vao;
-   GLuint _vbo;
-   GLuint _vbo_normals;
-   GLuint _vbo_idx;
-   GLuint _pid;
-   Shader *shader;
-
-   unsigned int x;
-   unsigned int z;
-
-   GLfloat *vertices = NULL;
-   GLfloat *normals = NULL;
-   GLfloat *textureCoords = NULL;
-   GLuint *indices = NULL;
-
-   unsigned int nb_vertices;
-   unsigned int nb_indices;
-
-   void generate_terrain();
-   void set_indices();
-
 public:
    Terrain();
 
@@ -44,12 +28,59 @@ public:
    void init(unsigned int sub_x, unsigned int sub_y);
 
    void draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
-             glm::vec3 light_position, glm::vec3 camera_position);
-   // draw with transform matrix in memory
-   void draw(glm::mat4x4 view, glm::mat4x4 projection,
-             glm::vec3 light_position, glm::vec3 camera_position);
+             glm::vec3 light_position, glm::vec3 camera_position,
+             bool activate_colour, bool activate_heightmap);
 
    void cleanup();
+
+private:
+   GLuint _vao;
+   GLuint _vbo;
+   GLuint _vbo_normals;
+   GLuint _vbo_idx;
+   GLuint _pid;
+   Shader *shader;
+
+   unsigned int sub_x;
+   unsigned int sub_y;
+
+   GLfloat *vertices = NULL;
+   GLuint *indices = NULL;
+   GLfloat *normals = NULL;
+
+   unsigned int nb_vertices;
+   unsigned int nb_indices;
+
+   // static vars for the noise generation
+   unsigned int noise_start_seg;
+   unsigned int noise_levels;
+   float noise_start_factor;
+   float noise_factor;
+   Function_select func_select;
+
+   std::vector<std::vector<float>> heightmap;
+   std::vector<std::vector<std::vector<float>>> heightmap_normals;
+
+   float function_flat(float x, float y)
+   {
+      return 0.0f;
+   }
+
+   float function_sin(float x, float y)
+   {
+      return sin(x * y * 10) / 10;
+   }
+
+   void generate_terrain();
+
+   void set_indices();
+
+   void generate_heightmap(float (Terrain::*func)(float, float),
+                           unsigned int grid_x, unsigned int grid_y);
+
+   void normalize_vec3(float vec[3]);
+
+   void cross_product(float vec_a[3], float vec_b[3], float vec_out[3]);
 };
 
 #endif
