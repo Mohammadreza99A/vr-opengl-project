@@ -4,7 +4,7 @@ Windmill::Windmill()
 {
 
     // compile the shaders.
-    shader = new Shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
 
     char path1[] = PATH_TO_OBJECTS "/mill.obj";
     mill = new Object(path1);
