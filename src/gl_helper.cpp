@@ -56,7 +56,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     Shader lightingShader("shaders/lightVertexShader.glsl", "shaders/lightFragShader.glsl");
     Shader sunShader("shaders/sunVertexShader.glsl", "shaders/sunFragShader.glsl");
 
-    char pathSun[] = PATH_TO_OBJECTS "/sphere_coarse.obj";
+    char pathSun[] = PATH_TO_OBJECTS "/sun.obj";
 
     Object sun(pathSun);
     sun.makeObject(sunShader, false);
@@ -91,12 +91,12 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
-    std::string pathToSunTex = PATH_TO_TEXTURE "/sun/sun_texture.jpeg";
+    std::string pathToSunTex = PATH_TO_TEXTURE "/sun/sun_texture.png";
     Texture textureSun(pathToSunTex);
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
-    float ambient = 0.2;
+    float ambient = 0.5;
     float diffuse = 1.0;
     float specular = 0.8;
 
@@ -142,7 +142,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         house.draw();
 
         textureSun.bind();
-        glm::vec3 sunColour = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 sunColour = glm::vec3(1.0f, 1.0f, 0.0f);
 
         sun.model = glm::mat4(1.0f);
         sun.model = glm::translate(sun.model, delta);
