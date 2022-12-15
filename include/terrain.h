@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "stb_image.h"
 
 #define PROFILING 1
 
@@ -28,10 +29,15 @@ public:
    void init(unsigned int sub_x, unsigned int sub_y);
 
    void draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
-             glm::vec3 light_position, glm::vec3 camera_position,
-             bool activate_colour, bool activate_heightmap);
+             glm::vec3 light_position, glm::vec3 camera_position);
 
    void cleanup();
+
+   float get_height(float pos_x, float pos_y);
+
+   void initTexture(std::string path);
+
+   void bindAllTexture();
 
 private:
    GLuint _vao;
@@ -40,6 +46,8 @@ private:
    GLuint _vbo_idx;
    GLuint _pid;
    Shader *shader;
+
+   GLuint terrain_texture_id;
 
    unsigned int sub_x;
    unsigned int sub_y;

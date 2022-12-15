@@ -1,44 +1,32 @@
 #version 330 core
 
 in vec3 position;
-in vec3 vertex_normal;
-uniform vec3 light_position;
-uniform vec3 camera_position;
+in vec2 tex_coord;
+in vec3 normal;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+out vec3 v_specular;
+out vec2 tex_vcoord;
 
-out vec3 frag_position;
-out vec3 frag_surface_normal_color;
-out vec3 frag_normal_transformed;
+uniform mat4 M;
+uniform mat4 itM;
+uniform mat4 V;
+uniform mat4 P;
+// 2. which vector do you need and where do you use them ?
+uniform vec3 u_light_pos;
+uniform vec3 u_view_pos;
+float spec_strength = 0.8;
 
-//to draw the height, without having it modified by the model matrix
-out float frag_nontransfheight;
+void main() {
+  tex_vcoord = tex_coord;
+  vec4 frag_coord = M * vec4(position, 1.0);
+  gl_Position = P *  V * frag_coord;
 
-void main(){
-   gl_Position = projection*view*model*vec4(position, 1.0);
-
-   mat3 normalMat = mat3(model);
-   normalMat = transpose(inverse(normalMat));
-
-   vec3 light_dir = normalize(light_position-vec3(model*vec4(position, 1.0)));
-   vec3 view_dir = normalize(camera_position-vec3(model*vec4(position, 1.0)));
-
-   vec3 normal_transformed = vec3(0.0);
-   float diffuse_light = 0.0;
-
-   normal_transformed = normalize(normalMat*vertex_normal);
-
-   normal_transformed = clamp(normal_transformed, 0.0, 1.0);
-
-   diffuse_light = dot(normal_transformed, light_dir);
-
-   float lum = 0.8*diffuse_light;
-   lum = clamp(lum, 0.0, 1.0);
-
-   frag_normal_transformed = normal_transformed;
-   frag_position = vec3(model*vec4(position, 1.0));
-
-   frag_nontransfheight = position[1];
+  vec3 N = vec3(itM * vec4(normal, 1.0));
+  vec3 L = normalize(u_light_pos - frag_coord.xyz);
+  vec3 V = normalize(u_view_pos - frag_coord.xyz);
+  vec3 R = reflect(-L, N); // max (2 * dot(N,L) * N - L , 0.0) ;
+  float cosTheta = dot(R, V);
+  float spec = pow(max(cosTheta, 0.0), 32.0);
+  float specular = spec_strength * spec;
+  v_specular = vec3(specular);
 }

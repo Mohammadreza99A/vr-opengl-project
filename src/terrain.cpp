@@ -73,22 +73,27 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
+    initTexture(PATH_TO_TEXTURE "/terrain/snow.jpg");
+
     glBindVertexArray(0);
 }
 
 void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
-                   glm::vec3 light_position, glm::vec3 camera_position,
-                   bool activate_colour, bool activate_heightmap)
+                   glm::vec3 light_position, glm::vec3 camera_position)
 {
+
+    bindAllTexture();
     shader->use();
     glBindVertexArray(_vao);
 
-    shader->setVector3f("light_position", light_position);
-    shader->setVector3f("camera_position", camera_position);
+    shader->setVector3f("u_view_pos", camera_position);
+    shader->setVector3f("u_light_pos", light_position);
 
-    shader->setMatrix4("model", model);
-    shader->setMatrix4("view", view);
-    shader->setMatrix4("projection", projection);
+    shader->setMatrix4("M", model);
+    shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));
+    shader->setMatrix4("V", view);
+    shader->setMatrix4("P", projection);
+    shader->setInteger("f_texture", 0);
 
     glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_INT, 0);
     glUseProgram(0);
@@ -112,6 +117,54 @@ void Terrain::cleanup()
     glDeleteBuffers(1, &_vbo);
     glDeleteVertexArrays(1, &_vao);
     glDeleteProgram(_pid);
+}
+
+float Terrain::get_height(float pos_x, float pos_y)
+{
+    // transform back the point to (1,1)
+    glm::vec4 vec(pos_x, 1.0f, pos_y, 1.0f);
+    glm::mat4 transf_matrix = glm::scale(glm::mat4(1.0), glm::vec3(256.0, 0.0, 256.0));
+
+    glm::vec4 vec_transf = glm::inverse(transf_matrix) * vec;
+
+    // get height for the point
+    float height = function_flat(vec_transf[0], vec_transf[2]);
+    height = (transf_matrix * glm::vec4(0.0f, height, 0.0f, 1.0f))[1];
+    return height;
+}
+
+void Terrain::initTexture(std::string path)
+{
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    glGenTextures(1, &terrain_texture_id);
+    glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    unsigned char *dataBuffer = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
+    if (dataBuffer)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, dataBuffer);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(dataBuffer);
+}
+
+void Terrain::bindAllTexture()
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
 }
 
 void Terrain::generate_terrain()
