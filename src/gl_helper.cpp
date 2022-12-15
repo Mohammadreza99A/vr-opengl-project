@@ -1,6 +1,6 @@
 #include "gl_helper.h"
 
-Camera camera(glm::vec3(0.0, 0.0, 0.1));
+Camera camera(glm::vec3(0.0, 0.0, 10));
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -70,16 +70,6 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
 
-    Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
-
-    char path[] = PATH_TO_OBJECTS "/house.obj";
-
-    Object house(path);
-    house.makeObject(shader);
-    house.model = glm::translate(house.model, glm::vec3(5.3, 0.0, -30.0));
-    house.model = glm::rotate(house.model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
-    house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
-
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
     double prev = 0;
@@ -96,11 +86,14 @@ void glHelper::mainLoop(GLFWwindow *window)
             deltaFrame = 0;
             std::cout << "\r FPS: " << fpsCount << std::endl;
         }
+        return deltaTime;
     };
 
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = camera.GetProjectionMatrix();
 
+    House house;
+    Windmill windmill;
     std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
     Texture textureHouse(pathToHosuTex);
 
@@ -132,19 +125,11 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // bind Texture
-        textureHouse.bind();
+        house.draw(view, perspective, camera.Position, light_pos);
 
-        shader.use();
-        // 1. send the relevant uniform to the shader
-        shader.setMatrix4("M", house.model);
-        shader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
-        shader.setMatrix4("V", view);
-        shader.setMatrix4("P", perspective);
-        shader.setVector3f("u_view_pos", camera.Position);
-        shader.setVector3f("u_light_pos", light_pos);
-
-        house.draw();
+        double deltaTime = fps(currentTime);
+        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        windmill.draw(view, perspective, camera.Position, light_pos, degree);
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -188,7 +173,8 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    
+        camera.ProcessKeyboardMovement(RIGHT, 0.5);
+
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(1, 0.0, 1);
