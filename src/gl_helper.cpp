@@ -70,7 +70,6 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
 
-    
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
     double prev = 0;
@@ -92,7 +91,6 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = camera.GetProjectionMatrix();
-
 
     House house;
     Windmill windmill;
@@ -127,13 +125,11 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    
-        house.draw(view,perspective,camera.Position,light_pos);
-
+        house.draw(view, perspective, camera.Position, light_pos);
 
         double deltaTime = fps(currentTime);
-        float degree = deltaTime*100 >25 ? 14.0 : 8.0;
-        windmill.draw(view,perspective,camera.Position,light_pos,degree);
+        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        windmill.draw(view, perspective, camera.Position, light_pos, degree);
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
@@ -177,7 +173,8 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
         camera.ProcessKeyboardMovement(LEFT, 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-    
+        camera.ProcessKeyboardMovement(RIGHT, 0.5);
+
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
         camera.ProcessKeyboardRotation(1, 0.0, 1);
