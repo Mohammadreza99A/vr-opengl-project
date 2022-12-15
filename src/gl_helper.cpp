@@ -72,6 +72,17 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
+    
+    /*Shader shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragtest.glsl");
+
+    char path[] = PATH_TO_OBJECTS "/horse.obj";
+    Object horse(path);
+    horse.makeObject(shader);
+    horse.model=glm::rotate(horse.model,glm::radians(25.f),glm::vec3(0.0,1.0,0.0));
+	horse.model=glm::scale(horse.model, glm::vec3(1.0, 1.0, 1.0));
+
+*/
+
     double prev = 0;
     int deltaFrame = 0;
     // fps function
@@ -95,6 +106,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     House house;
     Windmill windmill;
     SkyBox skyboxCubemap;
+    Horse horse;
 
     glfwSwapInterval(1);
 
@@ -107,6 +119,16 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        /*shader.use();
+        shader.setMatrix4("P", perspective);
+        shader.setMatrix4("V", view);
+        shader.setVector3f("u_view_pos", camera.Position);
+        shader.setVector3f("u_light_pos", light_pos);
+        shader.setMatrix4("M", horse.model);
+        shader.setMatrix4("itM", glm::transpose(glm::inverse(horse.model)));*/
+ 
+
+        horse.draw(view, perspective, camera.Position, light_pos);
 
         house.draw(view, perspective, camera.Position, light_pos);
 
@@ -118,7 +140,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
         glDepthFunc(GL_LESS); // set depth function back to default
 
-        fps(currentTime);
+        //fps(currentTime);
         glfwSwapBuffers(window);
     }
 }
