@@ -13,7 +13,6 @@
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
-#include "texture.h"
 #include "sky_box.h"
 
 #include "house.h"

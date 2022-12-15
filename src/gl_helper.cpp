@@ -94,24 +94,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     House house;
     Windmill windmill;
-    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
-    Texture textureHouse(pathToHosuTex);
-
-    // Loading cube map for skybox
-    std::vector<std::string> faces;
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posx.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negx.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posy.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negy.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posz.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negz.jpg");
-    SkyBox skyboxCubemap(faces);
-    skyboxCubemap.load();
-
-    Shader skyboxShader("shaders/skyBoxV.glsl", "shaders/skyBoxF.glsl");
-
-    skyboxShader.use();
-    skyboxShader.setInteger("skybox", 0);
+    SkyBox skyboxCubemap;
 
     glfwSwapInterval(1);
 
@@ -131,13 +114,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
         windmill.draw(view, perspective, camera.Position, light_pos, degree);
 
-        // draw skybox as last
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxShader.use();
-        view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
-        skyboxShader.setMatrix4("V", view);
-        skyboxShader.setMatrix4("P", perspective);
-        skyboxCubemap.draw();
+        skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);

@@ -10,16 +10,20 @@
 #include <string>
 #include <iostream>
 
+#include "shader.h"
+
 class SkyBox
 {
 private:
+    Shader *shader;
     std::vector<std::string> paths;
 
 public:
-    SkyBox(std::vector<std::string> paths);
+    SkyBox();
     ~SkyBox();
     void load();
-    void draw();
+    void draw(const glm::mat4 &view, const glm::mat4 &projection,
+              const glm::vec3 &camera_position, const glm::vec3 &light_pos);
 
     unsigned int textureID;
     unsigned int skyboxVAO;
