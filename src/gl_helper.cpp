@@ -1,5 +1,7 @@
 #include "gl_helper.h"
-
+#include "drawable.h"
+#include "snow.h"
+#include <vector>
 Camera camera(glm::vec3(0.0, 0.0, 10));
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
@@ -95,6 +97,27 @@ void glHelper::mainLoop(GLFWwindow *window)
     House house;
     Windmill windmill;
     SkyBox skyboxCubemap;
+    Shader *shader;
+    Particles_manager snow_particles_manager;
+    std::vector<Drawable*> lst_drawable;
+
+    // intialize the particle managers
+    shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl");
+
+    GLuint snow_particles_pid = shader->ID;
+
+    snow_particles_manager.init(20000, snow_particles_pid);
+    snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -20, 20);
+    snow_particles_manager.set_life_duration_sec(2, 5);
+    snow_particles_manager.set_initial_velocity(0, -30.0f/5.0f, 0, 0, 1.0f, 0); //30/5 unit per second, with +- 1.0
+    // snow_particles_manager.set_wind_func(wind_func);
+
+    lst_drawable.push_back(&snow_particles_manager);
+
+    //clip coord to tell shader not to draw anything over the water
+    for (size_t i = 0; i < lst_drawable.size(); i++) {
+        lst_drawable[i]->set_clip_coord(0, 1, 0, -2);
+    }
 
     glfwSwapInterval(1);
 
@@ -104,10 +127,26 @@ void glHelper::mainLoop(GLFWwindow *window)
         view = camera.GetViewMatrix();
         glfwPollEvents();
         double currentTime = glfwGetTime();
+        snow_particles_manager.set_time(currentTime);
+        snow_particles_manager.set_view_matrix(view);
+        snow_particles_manager.set_projection_matrix(perspective);
+        for (size_t i = 0; i < lst_drawable.size(); i++) {
+
+            lst_drawable[i]->set_light_pos(light_pos);
+            lst_drawable[i]->set_camera_pos(camera.Position);
+
+            // lst_drawable[i]->set_camera_direction(camera_direction);
+
+            lst_drawable[i]->set_shadow_buffer_texture_size(WIN_WIDTH, WIN_HEIGHT);
+            lst_drawable[i]->set_window_dim(WIN_WIDTH, WIN_HEIGHT);
+   }
+
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        for (size_t i = 0; i < lst_drawable.size(); i++) {
+            lst_drawable[i]->draw();
+        }
         house.draw(view, perspective, camera.Position, light_pos);
 
         double deltaTime = fps(currentTime);
