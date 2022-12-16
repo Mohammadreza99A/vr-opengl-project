@@ -53,8 +53,8 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
     // Sun
-    Shader lightingShader("shaders/lightVertexShader.glsl", "shaders/lightFragShader.glsl");
-    Shader sunShader("shaders/sunVertexShader.glsl", "shaders/sunFragShader.glsl");
+    Shader lightingShader(PATH_TO_SHADERS "/lightVertexShader.glsl", PATH_TO_SHADERS "/lightFragShader.glsl");
+    Shader sunShader(PATH_TO_SHADERS "/sunVertexShader.glsl", PATH_TO_SHADERS "/sunFragShader.glsl");
 
     char pathSun[] = PATH_TO_OBJECTS "/sun.obj";
 
