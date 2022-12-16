@@ -68,6 +68,12 @@ void glHelper::init(GLFWwindow *window)
 
     glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
 }
+void glHelper::wind_func(float pos[3], float ret[3], float time)
+{
+    ret[0] = (sin((pos[1] + pos[2] + time) / 2)) * 2;
+    ret[1] = (cos((pos[0] + pos[2] + time) / 2)) * 2;
+    ret[2] = (sin((pos[1] + pos[2] + time) / 2)) * 2;
+}
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
@@ -99,7 +105,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     SkyBox skyboxCubemap;
     Shader *shader;
     Particles_manager snow_particles_manager;
-    std::vector<Drawable*> lst_drawable;
+    std::vector<Drawable *> lst_drawable;
 
     // intialize the particle managers
     shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl");
@@ -109,13 +115,14 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.init(20000, snow_particles_pid);
     snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -20, 20);
     snow_particles_manager.set_life_duration_sec(2, 5);
-    snow_particles_manager.set_initial_velocity(0, -30.0f/5.0f, 0, 0, 1.0f, 0); //30/5 unit per second, with +- 1.0
-    // snow_particles_manager.set_wind_func(wind_func);
+    snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
+    snow_particles_manager.set_wind_func(wind_func);
 
     lst_drawable.push_back(&snow_particles_manager);
 
-    //clip coord to tell shader not to draw anything over the water
-    for (size_t i = 0; i < lst_drawable.size(); i++) {
+    // clip coord to tell shader not to draw anything over the water
+    for (size_t i = 0; i < lst_drawable.size(); i++)
+    {
         lst_drawable[i]->set_clip_coord(0, 1, 0, -2);
     }
 
@@ -130,7 +137,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         snow_particles_manager.set_time(currentTime);
         snow_particles_manager.set_view_matrix(view);
         snow_particles_manager.set_projection_matrix(perspective);
-        for (size_t i = 0; i < lst_drawable.size(); i++) {
+        for (size_t i = 0; i < lst_drawable.size(); i++)
+        {
 
             lst_drawable[i]->set_light_pos(light_pos);
             lst_drawable[i]->set_camera_pos(camera.Position);
@@ -139,12 +147,12 @@ void glHelper::mainLoop(GLFWwindow *window)
 
             lst_drawable[i]->set_shadow_buffer_texture_size(WIN_WIDTH, WIN_HEIGHT);
             lst_drawable[i]->set_window_dim(WIN_WIDTH, WIN_HEIGHT);
-   }
-
+        }
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        for (size_t i = 0; i < lst_drawable.size(); i++) {
+        for (size_t i = 0; i < lst_drawable.size(); i++)
+        {
             lst_drawable[i]->draw();
         }
         house.draw(view, perspective, camera.Position, light_pos);

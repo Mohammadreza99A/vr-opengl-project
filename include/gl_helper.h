@@ -36,6 +36,7 @@ namespace glHelper
     void mouse_cursor_callback(GLFWwindow *window, double xpos, double ypos);
     void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
     void cleanup(GLFWwindow *window);
+    void wind_func(float pos[3], float ret[3], float time);
 } // namespace glHelper
 
 #endif
