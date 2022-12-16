@@ -1,6 +1,7 @@
 #ifndef HOUSE_H
 #define HOUSE_H
 
+#include <cstdlib>
 #include "shader.h"
 #include "object.h"
 #include "stb_image.h"

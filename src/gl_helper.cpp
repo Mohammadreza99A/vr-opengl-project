@@ -106,7 +106,8 @@ void glHelper::mainLoop(GLFWwindow *window)
     House house;
     Windmill windmill;
     SkyBox skyboxCubemap;
-    Horse horse;
+
+    Horse horse(skyboxCubemap.textureID);
 
     glfwSwapInterval(1);
 
@@ -119,28 +120,21 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        /*shader.use();
-        shader.setMatrix4("P", perspective);
-        shader.setMatrix4("V", view);
-        shader.setVector3f("u_view_pos", camera.Position);
-        shader.setVector3f("u_light_pos", light_pos);
-        shader.setMatrix4("M", horse.model);
-        shader.setMatrix4("itM", glm::transpose(glm::inverse(horse.model)));*/
- 
-
+    
         horse.draw(view, perspective, camera.Position, light_pos);
+
 
         house.draw(view, perspective, camera.Position, light_pos);
 
         double deltaTime = fps(currentTime);
-        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        float degree = (int(currentTime)%10==0) ? 14.0 : 8.0;
         windmill.draw(view, perspective, camera.Position, light_pos, degree);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
         glDepthFunc(GL_LESS); // set depth function back to default
 
-        //fps(currentTime);
+        fps(currentTime);
         glfwSwapBuffers(window);
     }
 }
