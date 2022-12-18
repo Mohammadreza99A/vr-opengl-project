@@ -14,9 +14,10 @@
 #include "object.h"
 #include "texture.h"
 
+#include "sun.h"
 #define WIN_TITLE "VR OpenGL Project"
-#define WIN_WIDTH 512
-#define WIN_HEIGHT 512
+#define WIN_WIDTH 1024
+#define WIN_HEIGHT 720
 
 namespace glHelper
 {
