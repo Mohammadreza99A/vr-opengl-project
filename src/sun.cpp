@@ -6,11 +6,7 @@ Sun::Sun()
     // compile the shaders.
     shader_light = new Shader(PATH_TO_SHADERS "/lightVertexShader.glsl", PATH_TO_SHADERS "/lightFragShader.glsl");
     char pathToHouse[] = PATH_TO_OBJECTS "/house.obj";
-    house = new Object(pathToHouse);
-    house->makeObject(*shader_light);
-    house->model = glm::translate(house->model, glm::vec3(5.3, 0.0, -30.0));
-    house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
-    house->model = glm::scale(house->model, glm::vec3(0.4, 0.4, 0.4));
+    house = new House(shader_light);
 
     shader_sun = new Shader(PATH_TO_SHADERS "/sunVertexShader.glsl", PATH_TO_SHADERS "/sunFragShader.glsl");
 
@@ -19,17 +15,11 @@ Sun::Sun()
     sun->makeObject(*shader_sun, false);
     sun->model = glm::scale(sun->model, glm::vec3(2.0f, 2.0f, 1.0f));
 
-    // load terrain textures
-    // initTexture(PATH_TO_TEXTURE "/sun/sun_texture.png");
-    initTexture(PATH_TO_TEXTURE "/house/house_texture.jpg");
-
     float ambient = 0.5;
     float diffuse = 1.0;
     float specular = 0.8;
 
     glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
-
-    // Rendering
 
     shader_light->use();
     shader_light->setFloat("shininess", 32.0f);
@@ -49,23 +39,14 @@ void Sun::cleanup()
     glDeleteTextures(1, &sun_texture_id);
 }
 
-void Sun::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos, glm::vec3 delta, const glm::vec3 &color)
+void Sun::draw(const glm::mat4 &view, const glm::mat4 &projection,
+               const glm::vec3 &camera_position, const glm::vec3 &light_pos,
+               glm::vec3 delta, const glm::vec3 &color)
 {
-
-    // shader_light->use();
 
     bindAllTexture();
 
-    shader_light->use();
-    // 1. send the relevant uniform to the shader
-    shader_light->setMatrix4("M", house->model);
-    shader_light->setMatrix4("itM", glm::transpose(glm::inverse(house->model)));
-    shader_light->setMatrix4("V", view);
-    shader_light->setMatrix4("P", projection);
-    shader_light->setVector3f("u_view_pos", camera_position);
-    shader_light->setVector3f("light.light_pos", delta);
-
-    house->draw();
+    house->draw(view, projection, camera_position, delta);
 
     shader_sun->use();
     shader_sun->setMatrix4("M", sun->model);

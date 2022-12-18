@@ -1,4 +1,5 @@
 #version 330 core
+
 in vec3 position;
 in vec2 tex_coord;
 in vec3 normal;
@@ -18,7 +19,7 @@ float spec_strength = 0.8;
 void main() {
   tex_vcoord = tex_coord;
   vec4 frag_coord = M * vec4(position, 1.0);
-  gl_Position = P * V * frag_coord;
+  gl_Position = P *  V * frag_coord;
 
   vec3 N = vec3(itM * vec4(normal, 1.0));
   vec3 L = normalize(u_light_pos - frag_coord.xyz);

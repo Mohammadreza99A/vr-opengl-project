@@ -1,6 +1,10 @@
 #include "gl_helper.h"
 
-Camera camera(glm::vec3(0.0, 0.0, 0.1));
+Camera camera;
+GLfloat cameraPosition[3];
+static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
+static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
+static double prevScrollYOffset = 0;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -10,6 +14,15 @@ GLFWwindow *glHelper::initGlfwWindow()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     return glfwCreateWindow(WIN_WIDTH, WIN_HEIGHT, WIN_TITLE, NULL, NULL);
+}
+
+void glHelper::printWelcomeMessage()
+{
+    std::cout << "Commands for camera actions:" << std::endl;
+    std::cout << "\t - for movement, use arrow keys" << std::endl;
+    std::cout << "\t - for rotation, use IJKL keys" << std::endl;
+    std::cout << "\t - for rotation you can also use the mouse by hold left mouse key and moving it" << std::endl;
+    std::cout << "\t - scroll wheel (vertical) of the mouse can be used to move forward and backward" << std::endl;
 }
 
 void glHelper::printContextInfo()
@@ -24,10 +37,15 @@ void glHelper::initCallbacks(GLFWwindow *window)
 {
     // Keyboard Callback
     glfwSetKeyCallback(window, key_callback);
+    // Mouse actions callback
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, mouse_cursor_callback);
+    glfwSetScrollCallback(window, mouse_scroll_callback);
     // Framebuffer resize callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // Ensure we can capture the escape key being pressed below
+    // Ensure we can capture the keyboard keys and mouse buttons
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
 }
 
 void glHelper::init(GLFWwindow *window)
@@ -52,6 +70,19 @@ void glHelper::init(GLFWwindow *window)
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
+    Terrain terrain;
+    terrain.init(1024, 1024);
+    glm::mat4 terrainModel = glm::mat4(1.0);
+    terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
+
+    camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+    camera.init(5.5f, &terrain);
+    camera.setSpeed(5.0f);
+    camera.updatePos();
+
+    glm::mat4 view = camera.getMatrix();
+    glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
+
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
     double prev = 0;
@@ -68,17 +99,18 @@ void glHelper::mainLoop(GLFWwindow *window)
             deltaFrame = 0;
             std::cout << "\r FPS: " << fpsCount << std::endl;
         }
+        return deltaTime;
     };
 
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
-
+    Windmill windmill;
+    SkyBox skyboxCubemap;
     Sun sun;
 
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
-        view = camera.GetViewMatrix();
+        view = camera.getMatrix();
+        camera.getPosition(cameraPosition);
         glfwPollEvents();
         double currentTime = glfwGetTime();
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -86,15 +118,24 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         glm::vec3 delta = glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
-        sun.draw(view, perspective, camera.Position, light_pos, delta, sun_colour);
+        sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
+        // draw the terrain
+        terrain.draw(terrainModel, camera.getMatrix(), perspective, light_pos,
+                     glm::make_vec3(cameraPosition));
 
-        glDepthFunc(GL_LESS);
+        // house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+
+        double deltaTime = fps(currentTime);
+        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
+
+        glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        glDepthFunc(GL_LESS); // set depth function back to default
+
         fps(currentTime);
         glfwSwapBuffers(window);
     }
-
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
 }
 
 void glHelper::error_callback(int error, const char *description)
@@ -117,28 +158,78 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         std::cout << "Space key was pressed" << std::endl;
 
     // Camera input handling
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
+    // Movement with Arrow keys
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(UP, 1);
+        camera.inputHandling('W', 1.0);
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(DOWN, 1);
-
+        camera.inputHandling('S', 1.0);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(LEFT, 1);
+        camera.inputHandling('A', 1.0);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(RIGHT, 1);
+        camera.inputHandling('D', 1.0);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(FORWARD, 1);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(BACKWARD, 1);
+    // Rotation with IJKL keys
+    if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+        camera.inputHandling('L', 0.15);
+    if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+        camera.inputHandling('J', 0.15);
+    if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+        camera.inputHandling('I', 0.15);
+    if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+        camera.inputHandling('K', 0.15);
+}
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0, 1);
-    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(1, 0.0, 1);
+void glHelper::mouse_button_callback(GLFWwindow *window, int button,
+                                     int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+        if (!leftMouseButtonPress)
+        {
+            leftMouseButtonPress = true;
+            firstLeftMouseButton = true;
+        }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+        if (leftMouseButtonPress)
+        {
+            leftMouseButtonPress = false;
+            firstLeftMouseButton = true;
+        }
+}
+
+void glHelper::mouse_cursor_callback(GLFWwindow *window, double xposIn, double yposIn)
+{
+    if (!leftMouseButtonPress)
+        return;
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstLeftMouseButton)
+    {
+        prevMouseXPress = xpos;
+        prevMouseYPress = ypos;
+        firstLeftMouseButton = false;
+    }
+
+    float xoffset = xpos - prevMouseXPress;
+    float yoffset = prevMouseYPress - ypos; // reversed since y-coordinates go from bottom to top
+
+    prevMouseXPress = xpos;
+    prevMouseYPress = ypos;
+
+    // camera.processMouseMovement(xoffset, yoffset);
+}
+
+void glHelper::mouse_scroll_callback(GLFWwindow *window,
+                                     double xoffset, double yoffset)
+{
+    prevScrollYOffset += yoffset;
+
+    if (prevScrollYOffset + yoffset > prevScrollYOffset)
+        camera.inputHandling('W', 0.5);
+    if (prevScrollYOffset + yoffset < prevScrollYOffset)
+        camera.inputHandling('S', 0.5);
 }
 
 void glHelper::cleanup(GLFWwindow *window)

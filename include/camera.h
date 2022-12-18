@@ -6,58 +6,50 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
-enum Camera_Movement
-{
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
 
-// Default camera values
-const GLfloat YAW = -90.0f;
-const GLfloat PITCH = 0.0f;
-const GLfloat SPEED = 2.5f;
-const GLfloat SENSITIVTY = 0.25f;
-const GLfloat ZOOM = 45.0f;
+#include "terrain.h"
 
-// An abstract camera class that processes input and calculates the corresponding Eular Angles, Vectors and Matrices for use in OpenGL
 class Camera
 {
-private:
-    // Calculates the front vector from the Camera's (updated) Eular Angles
-    void updateCameraVectors();
-
 public:
-    // Camera Attributes
-    glm::vec3 Position;
-    glm::vec3 Front;
-    glm::vec3 Up;
-    glm::vec3 Right;
-    glm::vec3 WorldUp;
-    // Eular Angles
-    GLfloat Yaw;
-    GLfloat Pitch;
-    // Camera options
-    GLfloat MovementSpeed;
-    GLfloat MouseSensitivity;
-    GLfloat Zoom;
+    Camera();
+    void init(float height, Terrain *terrain);
+    void lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up);
+    void getPosition(float position[3]);
+    void getDirection(float direction[3]);
+    void getCenter(float center[3]);
+    glm::mat4x4 getMatrix();
+    glm::mat4x4 getReflectionMatrix(float height);
+    glm::mat4x4 getPerspectiveMat();
+    void inputHandling(char key, float time_delta);
+    void updatePos();
+    void setWindowSize(unsigned int win_width, unsigned int win_height);
+    void setSpeed(float speed);
+    void setViewSpeed(float speed);
+    void setHeight(float height);
+    void setTerrain(Terrain *terrain);
 
-    // Constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH);
-    // Constructor with scalar values
-    Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch);
+protected:
+    // for the look at function
+    glm::vec3 eye;
+    glm::vec3 center;
+    glm::vec3 up;
 
-    // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
-    glm::mat4 GetViewMatrix();
+    unsigned int win_width;
+    unsigned int win_height;
 
-    glm::mat4 GetProjectionMatrix(float fov = 45.0, float ratio = 1.0, float near = 0.01, float far = 100.0);
+    float angle_up;
+    float angle_side;
 
-    // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-    void ProcessKeyboardMovement(Camera_Movement direction, GLfloat deltaTime);
-    void ProcessKeyboardRotation(float YawRot, float PitchRot, float deltaTime, GLboolean constrainPitch = true);
+    float angle_change_per_second;
+
+    // units per seconds
+    float speed;
+
+    Terrain *terrain; // collision
+    float height;
+
+    void changeCamOrientation();
 };
+
 #endif
