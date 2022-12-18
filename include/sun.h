@@ -1,5 +1,5 @@
-#ifndef WINDMILL_H
-#define WINDMILL_H
+#ifndef SUN_H
+#define SUN_H
 
 #include "shader.h"
 #include "object.h"
