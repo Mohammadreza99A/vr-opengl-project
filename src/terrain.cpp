@@ -24,16 +24,10 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     vertices = new GLfloat[nb_vertices * 3];
     indices = new GLuint[nb_indices];
     normals = new GLfloat[nb_vertices * 3];
+    textures = new GLfloat[nb_vertices * 2];
 
     // fill the indices array
     set_indices();
-
-    // parameters for the perlin noise
-    noise_start_seg = 4;         // how many subdivision at each noise level
-    noise_levels = 6;            // how many recursions
-    noise_start_factor = 0.70f;  // multiplication factor for the first noise level
-    noise_factor = 0.40f;        // multiplication factor for the next noise level
-    func_select = select_perlin; // select the function
 
     heightmap.resize(sub_x);
     heightmap_normals.resize(sub_x);
@@ -57,7 +51,7 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
     glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
-    GLuint norm_id = glGetAttribLocation(_pid, "vertex_normal");
+    GLuint norm_id = glGetAttribLocation(_pid, "normal");
     glEnableVertexAttribArray(norm_id);
     glVertexAttribPointer(norm_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
@@ -69,11 +63,19 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     glEnableVertexAttribArray(vpoint_id);
     glVertexAttribPointer(vpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
+    glGenBuffers(1, &_vbo_textures);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_textures);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 2 * sizeof(GLfloat), textures, GL_STATIC_DRAW);
+
+    GLuint texpoint_id = glGetAttribLocation(_pid, "tex_coord");
+    glEnableVertexAttribArray(texpoint_id);
+    glVertexAttribPointer(texpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
     glGenBuffers(1, &_vbo_idx);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-    initTexture(PATH_TO_TEXTURE "/terrain/snow.jpg");
+    initTexture(PATH_TO_TEXTURE "/skybox/negx.jpg");
 
     glBindVertexArray(0);
 }
@@ -112,6 +114,12 @@ void Terrain::cleanup()
     {
         delete indices;
         indices = NULL;
+    }
+
+    if (textures != NULL)
+    {
+        delete textures;
+        textures = NULL;
     }
 
     glDeleteBuffers(1, &_vbo);
@@ -184,6 +192,9 @@ void Terrain::generate_terrain()
             vertices[cur_pos] = relative_x;
             vertices[cur_pos + 1] = heightmap[i][j]; //(*this.*func)(relative_x, relative_z);
             vertices[cur_pos + 2] = relative_z;
+
+            textures[((j * sub_x + i) * 2)] = relative_x;
+            textures[((j * sub_x + i) * 2) + 1] = relative_z;
 
             normals[cur_pos + 0] = heightmap_normals[i][j][0]; // cross_product_vec[0];
             normals[cur_pos + 1] = heightmap_normals[i][j][1];

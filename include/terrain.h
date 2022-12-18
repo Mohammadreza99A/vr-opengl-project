@@ -9,15 +9,6 @@
 #include "shader.h"
 #include "stb_image.h"
 
-#define PROFILING 1
-
-enum Function_select
-{
-   select_linear,
-   select_ease, // ease is a polynomial that gives a smooth result better than linear but not as realistic as perlin
-   select_perlin
-};
-
 class Terrain
 {
 public:
@@ -27,22 +18,18 @@ public:
    // it defines the definition of the terrain
    //  a 4x3 terrain will contain 12 quads
    void init(unsigned int sub_x, unsigned int sub_y);
-
    void draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
              glm::vec3 light_position, glm::vec3 camera_position);
-
    void cleanup();
-
    float get_height(float pos_x, float pos_y);
-
    void initTexture(std::string path);
-
    void bindAllTexture();
 
 private:
    GLuint _vao;
    GLuint _vbo;
    GLuint _vbo_normals;
+   GLuint _vbo_textures;
    GLuint _vbo_idx;
    GLuint _pid;
    Shader *shader;
@@ -55,16 +42,10 @@ private:
    GLfloat *vertices = NULL;
    GLuint *indices = NULL;
    GLfloat *normals = NULL;
+   GLfloat *textures = NULL;
 
    unsigned int nb_vertices;
    unsigned int nb_indices;
-
-   // static vars for the noise generation
-   unsigned int noise_start_seg;
-   unsigned int noise_levels;
-   float noise_start_factor;
-   float noise_factor;
-   Function_select func_select;
 
    std::vector<std::vector<float>> heightmap;
    std::vector<std::vector<std::vector<float>>> heightmap_normals;
@@ -73,21 +54,15 @@ private:
    {
       return 0.0f;
    }
-
    float function_sin(float x, float y)
    {
       return sin(x * y * 10) / 10;
    }
-
    void generate_terrain();
-
    void set_indices();
-
    void generate_heightmap(float (Terrain::*func)(float, float),
                            unsigned int grid_x, unsigned int grid_y);
-
    void normalize_vec3(float vec[3]);
-
    void cross_product(float vec_a[3], float vec_b[3], float vec_out[3]);
 };
 
