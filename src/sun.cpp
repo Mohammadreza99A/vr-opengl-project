@@ -11,14 +11,13 @@ Sun::Sun()
     house->model = glm::translate(house->model, glm::vec3(5.3, 0.0, -30.0));
     house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house->model = glm::scale(house->model, glm::vec3(0.4, 0.4, 0.4));
-    
+
     shader_sun = new Shader(PATH_TO_SHADERS "/sunVertexShader.glsl", PATH_TO_SHADERS "/sunFragShader.glsl");
 
     char pathToSun[] = PATH_TO_OBJECTS "/sun.obj";
     sun = new Object(pathToSun);
     sun->makeObject(*shader_sun, false);
     sun->model = glm::scale(sun->model, glm::vec3(2.0f, 2.0f, 1.0f));
-
 
     // load terrain textures
     // initTexture(PATH_TO_TEXTURE "/sun/sun_texture.png");
@@ -77,7 +76,7 @@ void Sun::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::ve
     shader_sun->setVector3f("materialColour", color);
     turn(delta);
     sun->draw();
-    
+
     glBindVertexArray(0);
     glUseProgram(0);
 }

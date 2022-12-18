@@ -53,7 +53,7 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
-    
+
     double prev = 0;
     int deltaFrame = 0;
     // fps function
@@ -70,7 +70,6 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
     };
 
-
     glm::mat4 view = camera.GetViewMatrix();
     glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
@@ -85,8 +84,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::vec3 delta = glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);  
-        const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);  
+        glm::vec3 delta = glm::vec3(5.3f, sin(currentTime) * 40.0f, -40 + cos(currentTime) * 40.0f);
+        const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, camera.Position, light_pos, delta, sun_colour);
 
         glDepthFunc(GL_LESS);

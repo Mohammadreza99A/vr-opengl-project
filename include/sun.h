@@ -9,7 +9,6 @@ class Sun
 {
 
 private:
-
     Shader *shader_light;
     Shader *shader_sun;
     Object *sun;
