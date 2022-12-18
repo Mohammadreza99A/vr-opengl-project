@@ -14,6 +14,7 @@
 #include "shader.h"
 #include "object.h"
 #include "sky_box.h"
+#include "terrain.h"
 
 #include "house.h"
 #include "windmill.h"

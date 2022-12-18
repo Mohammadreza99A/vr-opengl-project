@@ -9,13 +9,15 @@ Windmill::Windmill()
     char path1[] = PATH_TO_OBJECTS "/mill.obj";
     mill = new Object(path1);
     mill->makeObject(*shader);
-    mill->model = glm::translate(mill->model, glm::vec3(15.0, 0.0, 0.0));
+    mill->model = glm::translate(mill->model, glm::vec3(15.0, 5.0, -25.0));
+    mill->model = glm::rotate(mill->model, glm::radians(-75.f), glm::vec3(0.0, 1.0, 0.0));
     mill->model = glm::scale(mill->model, glm::vec3(0.5, 0.5, 0.5));
 
     char path2[] = PATH_TO_OBJECTS "/turbines.obj";
     turbines = new Object(path2);
     turbines->makeObject(*shader);
-    turbines->model = glm::translate(turbines->model, glm::vec3(15.0, 0.0, 0.0));
+    turbines->model = glm::translate(turbines->model, glm::vec3(15.0, 5.0, -25.0));
+    turbines->model = glm::rotate(turbines->model, glm::radians(-75.f), glm::vec3(0.0, 1.0, 0.0));
     turbines->model = glm::scale(turbines->model, glm::vec3(0.5, 0.5, 0.5));
 
     // load terrain textures
