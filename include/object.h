@@ -36,7 +36,7 @@ public:
     glm::mat4 model = glm::mat4(1.0);
 
     Object(const char *path);
-    void makeObject(Shader shader, bool texture = true);
+    void makeObject(Shader& shader, bool texture = true);
     void draw();
 };
 #endif

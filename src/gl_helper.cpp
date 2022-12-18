@@ -109,26 +109,15 @@ void glHelper::mainLoop(GLFWwindow *window)
             deltaFrame = 0;
             std::cout << "\r FPS: " << fpsCount << std::endl;
         }
+        return deltaTime;
     };
 
-    std::string pathToHosuTex = PATH_TO_TEXTURE "/house/house_texture.jpg";
-    Texture textureHouse(pathToHosuTex);
+    glm::mat4 view = camera.GetViewMatrix();
+    glm::mat4 perspective = camera.GetProjectionMatrix();
 
-    // Loading cube map for skybox
-    std::vector<std::string> faces;
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posx.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negx.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posy.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negy.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/posz.jpg");
-    faces.push_back(PATH_TO_TEXTURE "/skybox/negz.jpg");
-    SkyBox skyboxCubemap(faces);
-    skyboxCubemap.load();
-
-    Shader skyboxShader("shaders/skyBoxV.glsl", "shaders/skyBoxF.glsl");
-
-    skyboxShader.use();
-    skyboxShader.setInteger("skybox", 0);
+    House house;
+    Windmill windmill;
+    SkyBox skyboxCubemap;
 
     glfwSwapInterval(1);
 
@@ -149,7 +138,11 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         // bind Texture
         textureHouse.bind();
+        house.draw(view, perspective, camera.Position, light_pos);
 
+        double deltaTime = fps(currentTime);
+        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        windmill.draw(view, perspective, camera.Position, light_pos, degree);
         shader.use();
         // 1. send the relevant uniform to the shader
         shader.setMatrix4("M", house.model);
@@ -161,8 +154,8 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         house.draw();
 
-        // draw skybox as last
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
         skyboxShader.use();
         view = glm::mat4(glm::mat3(camera.getMatrix())); // remove translation from the view matrix
         skyboxShader.setMatrix4("V", view);
