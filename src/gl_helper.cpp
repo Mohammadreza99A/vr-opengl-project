@@ -1,7 +1,7 @@
 #include "gl_helper.h"
 
 Camera camera;
-GLfloat camera_position[3];
+GLfloat cameraPosition[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -83,16 +83,6 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 view = camera.getMatrix();
     glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
-    Shader shader("shaders/vertexShader.glsl", "shaders/fragShader.glsl");
-
-    char path[] = PATH_TO_OBJECTS "/house.obj";
-
-    Object house(path);
-    house.makeObject(shader);
-    house.model = glm::translate(house.model, glm::vec3(5.0, 20.0, -50.0));
-    house.model = glm::rotate(house.model, glm::radians(2.0f), glm::vec3(0.0, 1.0, 0.0));
-    house.model = glm::scale(house.model, glm::vec3(0.4, 0.4, 0.4));
-
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
 
     double prev = 0;
@@ -112,9 +102,6 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 perspective = camera.GetProjectionMatrix();
-
     House house;
     Windmill windmill;
     SkyBox skyboxCubemap;
@@ -125,7 +112,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     while (!glfwWindowShouldClose(window))
     {
         view = camera.getMatrix();
-        camera.getPosition(camera_position);
+        camera.getPosition(cameraPosition);
         glfwPollEvents();
         double currentTime = glfwGetTime();
 
@@ -134,33 +121,16 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, light_pos,
-                     glm::make_vec3(camera_position));
+                     glm::make_vec3(cameraPosition));
 
-        // bind Texture
-        textureHouse.bind();
-        house.draw(view, perspective, camera.Position, light_pos);
+        house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        windmill.draw(view, perspective, camera.Position, light_pos, degree);
-        shader.use();
-        // 1. send the relevant uniform to the shader
-        shader.setMatrix4("M", house.model);
-        shader.setMatrix4("itM", glm::transpose(glm::inverse(house.model)));
-        shader.setMatrix4("V", view);
-        shader.setMatrix4("P", perspective);
-        shader.setVector3f("u_view_pos", glm::make_vec3(camera_position));
-        shader.setVector3f("u_light_pos", light_pos);
-
-        house.draw();
+        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
-        skyboxShader.use();
-        view = glm::mat4(glm::mat3(camera.getMatrix())); // remove translation from the view matrix
-        skyboxShader.setMatrix4("V", view);
-        skyboxShader.setMatrix4("P", perspective);
-        skyboxCubemap.draw();
+        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
@@ -200,13 +170,13 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
 
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        camera.inputHandling('L', 0.25);
+        camera.inputHandling('L', 0.15);
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-        camera.inputHandling('J', 0.25);
+        camera.inputHandling('J', 0.15);
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        camera.inputHandling('I', 0.25);
+        camera.inputHandling('I', 0.15);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-        camera.inputHandling('K', 0.25);
+        camera.inputHandling('K', 0.15);
 }
 
 void glHelper::mouse_button_callback(GLFWwindow *window, int button,
