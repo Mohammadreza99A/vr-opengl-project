@@ -1,9 +1,8 @@
 #include "house.h"
 
-House::House(Shader *shader)
+House::House()
 {
-    // shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
-    this->shader = shader;
+    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
 
     char path[] = PATH_TO_OBJECTS "/farm_house.obj";
     house = new Object(path);
@@ -18,6 +17,11 @@ House::House(Shader *shader)
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+Shader *House::getShader()
+{
+    return this->shader;
 }
 
 void House::cleanup()

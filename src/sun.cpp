@@ -3,50 +3,26 @@
 Sun::Sun()
 {
 
-    // compile the shaders.
-    shader_light = new Shader(PATH_TO_SHADERS "/lightVertexShader.glsl", PATH_TO_SHADERS "/lightFragShader.glsl");
-    char pathToHouse[] = PATH_TO_OBJECTS "/house.obj";
-    house = new House(shader_light);
-
     shader_sun = new Shader(PATH_TO_SHADERS "/sunVertexShader.glsl", PATH_TO_SHADERS "/sunFragShader.glsl");
 
     char pathToSun[] = PATH_TO_OBJECTS "/sun.obj";
     sun = new Object(pathToSun);
     sun->makeObject(*shader_sun, false);
     sun->model = glm::scale(sun->model, glm::vec3(2.0f, 2.0f, 1.0f));
-
-    float ambient = 0.5;
-    float diffuse = 1.0;
-    float specular = 0.8;
-
-    glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
-
-    shader_light->use();
-    shader_light->setFloat("shininess", 32.0f);
-    shader_light->setVector3f("materialColour", materialColour);
-    shader_light->setFloat("light.ambient_strength", ambient);
-    shader_light->setFloat("light.diffuse_strength", diffuse);
-    shader_light->setFloat("light.specular_strength", specular);
-    // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
 }
 
 void Sun::cleanup()
 {
-    shader_light->cleanup();
     shader_sun->cleanup();
     glDeleteTextures(1, &sun_texture_id);
 }
 
 void Sun::draw(const glm::mat4 &view, const glm::mat4 &projection,
                const glm::vec3 &camera_position, const glm::vec3 &light_pos,
-               glm::vec3 delta, const glm::vec3 &color)
+               glm::vec3 &delta, const glm::vec3 &color)
 {
-
-    bindAllTexture();
-
-    house->draw(view, projection, camera_position, delta);
 
     shader_sun->use();
     shader_sun->setMatrix4("M", sun->model);
@@ -56,6 +32,7 @@ void Sun::draw(const glm::mat4 &view, const glm::mat4 &projection,
     shader_sun->setVector3f("u_view_pos", camera_position);
     shader_sun->setVector3f("materialColour", color);
     turn(delta);
+
     sun->draw();
 
     glBindVertexArray(0);
@@ -90,8 +67,9 @@ void Sun::initTexture(std::string path)
     stbi_image_free(dataBuffer);
 }
 
-void Sun::turn(glm::vec3 delta)
+void Sun::turn(glm::vec3 &delta)
 {
+    sun->model = glm::mat4(1.0f);
     sun->model = glm::translate(sun->model, delta);
 }
 

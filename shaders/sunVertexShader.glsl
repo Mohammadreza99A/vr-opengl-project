@@ -14,5 +14,5 @@ void main()
 {	
 	tex_vcoord = tex_coord;
 	vec4 frag_coord = M * vec4(position, 1.0);
-  	gl_Position = P * M * V * frag_coord;
+  	gl_Position = P * V * frag_coord;
 }

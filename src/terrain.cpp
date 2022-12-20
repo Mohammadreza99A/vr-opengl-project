@@ -2,10 +2,15 @@
 
 Terrain::Terrain()
 {
-    shader = new Shader("shaders/terrainV.glsl", "shaders/terrainF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
+}
+
+Shader *Terrain::getShader()
+{
+    return this->shader;
 }
 
 void Terrain::init(unsigned int sub_x, unsigned int sub_y)
@@ -89,7 +94,7 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
     glBindVertexArray(_vao);
 
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_position);
+    shader->setVector3f("light.light_pos", light_position);
 
     shader->setMatrix4("M", model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));
