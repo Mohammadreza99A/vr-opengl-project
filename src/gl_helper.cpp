@@ -1,9 +1,10 @@
 #include "gl_helper.h"
+
+Camera camera;
 #include "drawable.h"
 #include "snow.h"
 #include <vector>
-Camera camera(glm::vec3(0.0, 0.0, 10));
-GLfloat camera_position[3];
+GLfloat cameraPosition[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -73,6 +74,18 @@ void glHelper::init(GLFWwindow *window)
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
+    Terrain terrain;
+    terrain.init(1024, 1024);
+    glm::mat4 terrainModel = glm::mat4(1.0);
+    terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
+
+    camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+    camera.init(5.5f, &terrain);
+    camera.setSpeed(5.0f);
+    camera.updatePos();
+
+    glm::mat4 view = camera.getMatrix();
+    glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
     const glm::vec3 light_pos = glm::vec3(1.0, 2.0, 2.0);
     GLfloat light_position[3];
@@ -97,16 +110,13 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
-    glm::mat4 view = camera.GetViewMatrix();
-    glm::mat4 perspective = camera.GetProjectionMatrix();
-
     House house;
     Windmill windmill;
     SkyBox skyboxCubemap;
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
 
-    snow_particles_manager.set_emiter_boundary(-200, 200, 29, 31, -20, 20);
+    snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -55, 0);
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
@@ -115,29 +125,31 @@ void glHelper::mainLoop(GLFWwindow *window)
     // Main loop until escape key is pressed
     while (!glfwWindowShouldClose(window))
     {
-        view = camera.GetViewMatrix();
+        view = camera.getMatrix();
+        camera.getPosition(cameraPosition);
         glfwPollEvents();
         double currentTime = glfwGetTime();
         snow_particles_manager.set_time(currentTime);
-        camera_position[0] = camera.Position.x;
-        camera_position[1] = camera.Position.y;
-        camera_position[2] = camera.Position.z;
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (isSnowing)
         {
-            snow_particles_manager.draw(view, perspective, camera_position, light_position);
+            snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
         }
-        house.draw(view, perspective, camera.Position, light_pos);
+        // draw the terrain
+        terrain.draw(terrainModel, camera.getMatrix(), perspective, light_pos,
+                     glm::make_vec3(cameraPosition));
+
+        house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        windmill.draw(view, perspective, camera.Position, light_pos, degree);
+        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxCubemap.draw(view, perspective, camera.Position, light_pos);
+        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
@@ -167,23 +179,23 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     // Camera input handling
     // Movement with Arrow keys
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(FORWARD, 0.5);
+        camera.inputHandling('W', 1.0);
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(BACKWARD, 0.5);
+        camera.inputHandling('S', 1.0);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(LEFT, 0.5);
+        camera.inputHandling('A', 1.0);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.ProcessKeyboardMovement(RIGHT, 0.5);
+        camera.inputHandling('D', 1.0);
 
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(1, 0.0, 1);
+        camera.inputHandling('L', 0.15);
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(-1, 0.0, 1);
+        camera.inputHandling('J', 0.15);
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(0.0, 1.0, 1);
+        camera.inputHandling('I', 0.15);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-        camera.ProcessKeyboardRotation(0.0, -1.0, 1);
+        camera.inputHandling('K', 0.15);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         isSnowing = true;
@@ -230,16 +242,16 @@ void glHelper::mouse_cursor_callback(GLFWwindow *window, double xposIn, double y
     prevMouseXPress = xpos;
     prevMouseYPress = ypos;
 
-    camera.processMouseMovement(xoffset, yoffset);
+    // camera.processMouseMovement(xoffset, yoffset);
 }
 
 void glHelper::mouse_scroll_callback(GLFWwindow *window,
                                      double xoffset, double yoffset)
 {
     if (prevScrollYOffset + yoffset > prevScrollYOffset)
-        camera.ProcessKeyboardMovement(FORWARD, 1);
+        camera.inputHandling('W', 0.5);
     if (prevScrollYOffset + yoffset < prevScrollYOffset)
-        camera.ProcessKeyboardMovement(BACKWARD, 1);
+        camera.inputHandling('S', 0.5);
 
     prevScrollYOffset += yoffset;
 }
