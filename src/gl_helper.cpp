@@ -121,7 +121,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-        horse.draw(view, perspective, camera.Position, light_pos);
+        horse.draw(view, perspective, camera.Position, light_pos,glm::vec3(2.0f, 2.0f, 1.0f));
 
 
         house.draw(view, perspective, camera.Position, light_pos);
