@@ -18,6 +18,7 @@
 
 #include "house.h"
 #include "windmill.h"
+//#include "brick.h"
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 720
