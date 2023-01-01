@@ -70,8 +70,8 @@ void glHelper::init(GLFWwindow *window)
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
-    Terrain terrain;
-    terrain.init(124, 124);
+    Terrain terrain(124,124);
+    terrain.init();
     glm::mat4 terrainModel = glm::mat4(1.0);
     terrainModel = glm::translate(terrainModel, glm::vec3(-500.0, 0.0, -500.0));
     //terrainModel = glm::scale(terrainModel, glm::vec3(32.0, 32.0, 32.0));
@@ -104,9 +104,17 @@ void glHelper::mainLoop(GLFWwindow *window)
     };
 
     House house;
+    Bricks bricks(3,10);
+    bricks.transform(glm::vec3(-0.91, 2.0, -26.46),glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0),glm::vec3(0.5, 0.5, 0.5));
+
+    Bricks bricks2(3,10);
+    bricks2.transform(glm::vec3(3.6, 2.0, -36.1),glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0),glm::vec3(0.55, 0.5, 0.5));
+
+    Barrel barrel;
+
+    
     Windmill windmill;
     SkyBox skyboxCubemap;
-    //Brick brick;
 
     glfwSwapInterval(1);
 
@@ -126,13 +134,16 @@ void glHelper::mainLoop(GLFWwindow *window)
                     glm::make_vec3(cameraPosition));
 
         house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
 
-        //brick.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
+        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);

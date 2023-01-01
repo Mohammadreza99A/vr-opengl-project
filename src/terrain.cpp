@@ -1,6 +1,6 @@
 #include "terrain.h"
 
-Terrain::Terrain()
+Terrain::Terrain(unsigned int sub_x, unsigned int sub_y): MatrixSquares(sub_x, sub_y)
 {
     shader = new Shader(PATH_TO_SHADERS "/terrainV.glsl", PATH_TO_SHADERS "/terrainF.glsl");
     _pid = shader->ID;
@@ -8,25 +8,9 @@ Terrain::Terrain()
         exit(-1);
 }
 
-void Terrain::init(unsigned int sub_x, unsigned int sub_y)
+void Terrain::init()
 {
-
-    glGenVertexArrays(1, &_vao);
-    glBindVertexArray(_vao);
-
-    this->sub_x = sub_x;
-    this->sub_y = sub_y;
-    nb_vertices = sub_x * sub_y;
-    unsigned int nb_quads = (sub_x - 1) * (sub_y - 1);
-    unsigned int nb_tris = nb_quads * 2;
-    nb_indices = nb_tris * 3;
-
-    vertices = new GLfloat[nb_vertices * 3];
-    indices = new GLuint[nb_indices];
-    normals = new GLfloat[nb_vertices * 3];
-    textures = new GLfloat[nb_vertices * 2];
-
-    // fill the indices array
+    MatrixSquares::init();
     set_indices();
 
     heightmap.resize(sub_x);
@@ -47,35 +31,9 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     // fills the buffers
     generate_terrain();
 
-    glGenBuffers(1, &_vbo_normals);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
+    fill_buffers();
 
-    GLuint norm_id = glGetAttribLocation(_pid, "normal");
-    glEnableVertexAttribArray(norm_id);
-    glVertexAttribPointer(norm_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glGenBuffers(1, &_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
-    GLuint vpoint_id = glGetAttribLocation(_pid, "position");
-    glEnableVertexAttribArray(vpoint_id);
-    glVertexAttribPointer(vpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glGenBuffers(1, &_vbo_textures);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_textures);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 2 * sizeof(GLfloat), textures, GL_STATIC_DRAW);
-
-    GLuint texpoint_id = glGetAttribLocation(_pid, "tex_coord");
-    glEnableVertexAttribArray(texpoint_id);
-    glVertexAttribPointer(texpoint_id, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glGenBuffers(1, &_vbo_idx);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
-    initTexture(PATH_TO_TEXTURE "/terrain/grass_winter.jpg");
+    texture_id=initTexture(PATH_TO_TEXTURE "/terrain/terrain_snow.jpg");
     
 
     glBindVertexArray(0);
@@ -143,39 +101,10 @@ float Terrain::get_height(float pos_x, float pos_y)
     return height;
 }
 
-void Terrain::initTexture(std::string path)
-{
-
-    int width, height, nrChannels;
-    //stbi_set_flip_vertically_on_load(true);
-    glGenTextures(1, &terrain_texture_id);
-    glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
-    
-
-    
- glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    unsigned char *dataBuffer = stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
-    if (dataBuffer)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, dataBuffer);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(dataBuffer);
-}
-
 void Terrain::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
 }
 
 void Terrain::generate_terrain()
@@ -248,49 +177,6 @@ void Terrain::generate_heightmap(float (Terrain::*func)(float, float), unsigned 
             heightmap_normals[i][j][0] = cross_product_vec[0];
             heightmap_normals[i][j][1] = cross_product_vec[1];
             heightmap_normals[i][j][2] = cross_product_vec[2];
-        }
-    }
-}
-
-void Terrain::normalize_vec3(float vec[3])
-{
-    float length = sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
-
-    vec[0] = vec[0] / length;
-    vec[1] = vec[1] / length;
-    vec[2] = vec[2] / length;
-}
-
-void Terrain::cross_product(float vec_a[3], float vec_b[3], float vec_out[3])
-{
-    vec_out[0] = vec_a[1] * vec_b[2] - vec_a[2] * vec_b[1];
-    vec_out[1] = vec_a[2] * vec_b[0] - vec_a[0] * vec_b[2];
-    vec_out[2] = vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0];
-}
-
-void Terrain::set_indices()
-{
-    for (uint j = 0; j < sub_y - 1; j++)
-    {
-        for (uint i = 0; i < sub_x - 1; i++)
-        {
-            unsigned int v0 = j * sub_x + i;
-            unsigned int v1 = j * sub_x + i + 1;
-            unsigned int v2 = (j + 1) * sub_x + i;
-            unsigned int v3 = (j + 1) * sub_x + i + 1;
-
-            unsigned int index_ptr = (j * (sub_x - 1) + i) * 6;
-            // printf("%d\n", index_ptr);
-
-            indices[index_ptr] = v0;
-            indices[index_ptr + 1] = v3;
-            indices[index_ptr + 2] = v1;
-
-            indices[index_ptr + 3] = v0;
-            indices[index_ptr + 4] = v2;
-            indices[index_ptr + 5] = v3;
-
-            // printf("index: %d, %d, %d || %d, %d, %d\n", v0, v3, v1, v0, v2, v3);
         }
     }
 }
