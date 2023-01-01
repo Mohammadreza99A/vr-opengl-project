@@ -107,77 +107,76 @@ void Object::makeObject(Shader &shader, bool texture, bool bump)
      * What happens when a shader doesn't have a position, tex_coord or normal attribute ?
      */
 
-    float *data = new float[8 * numVertices];
-    for (int i = 0; i < numVertices; i++)
-    {
-        Vertex v = vertices.at(i);
-        data[i * 8] = v.Position.x;
-        data[i * 8 + 1] = v.Position.y;
-        data[i * 8 + 2] = v.Position.z;
+ float *data = new float[8 * numVertices];
+ for (int i = 0; i < numVertices; i++)
+ {
+     Vertex v = vertices.at(i);
+     data[i * 8] = v.Position.x;
+     data[i * 8 + 1] = v.Position.y;
+     data[i * 8 + 2] = v.Position.z;
 
-        data[i * 8 + 3] = v.Texture.x;
-        data[i * 8 + 4] = v.Texture.y;
+     data[i * 8 + 3] = v.Texture.x;
+     data[i * 8 + 4] = v.Texture.y;
 
-        data[i * 8 + 5] = v.Normal.x;
-        data[i * 8 + 6] = v.Normal.y;
-        data[i * 8 + 7] = v.Normal.z;
-    }
+     data[i * 8 + 5] = v.Normal.x;
+     data[i * 8 + 6] = v.Normal.y;
+     data[i * 8 + 7] = v.Normal.z;
+ }
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+ glGenVertexArrays(1, &VAO);
+ glGenBuffers(1, &VBO);
 
-    // define VBO and VAO as active buffer and active vertex array
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
+ // define VBO and VAO as active buffer and active vertex array
+ glBindVertexArray(VAO);
+ glBindBuffer(GL_ARRAY_BUFFER, VBO);
+ glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * numVertices, data, GL_STATIC_DRAW);
 
-    auto att_pos = glGetAttribLocation(shader.ID, "position");
-    glEnableVertexAttribArray(att_pos);
-    glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
+ auto att_pos = glGetAttribLocation(shader.ID, "position");
+ glEnableVertexAttribArray(att_pos);
+ glVertexAttribPointer(att_pos, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)0);
 
-    if (texture)
-    {
-        auto att_tex = glGetAttribLocation(shader.ID, "tex_coord");
-        glEnableVertexAttribArray(att_tex);
-        glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-    }
+ if (texture)
+ {
+     auto att_tex = glGetAttribLocation(shader.ID, "tex_coord");
+     glEnableVertexAttribArray(att_tex);
+     glVertexAttribPointer(att_tex, 2, GL_FLOAT, false, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+ }
 
-    auto att_col = glGetAttribLocation(shader.ID, "normal");
-    glEnableVertexAttribArray(att_col);
-    glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(5 * sizeof(float)));
+ auto att_col = glGetAttribLocation(shader.ID, "normal");
+ glEnableVertexAttribArray(att_col);
+ glVertexAttribPointer(att_col, 3, GL_FLOAT, false, 8 * sizeof(float), (void *)(5 * sizeof(float)));
 
-    if (bump)
-    {
-        GLfloat *tangent = new GLfloat[numVertices * 3];
-        GLfloat *bitangent = new GLfloat[numVertices * 3];
+ if (bump)
+ {
+     GLfloat *tangent = new GLfloat[numVertices * 3];
+     GLfloat *bitangent = new GLfloat[numVertices * 3];
 
-        compute_tangent(tangent, bitangent);
+     compute_tangent(tangent, bitangent);
 
-        glGenBuffers(1, &VBO_TG);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_TG);
-        glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(GLfloat), tangent, GL_STATIC_DRAW);
+     glGenBuffers(1, &VBO_TG);
+     glBindBuffer(GL_ARRAY_BUFFER, VBO_TG);
+     glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(GLfloat), tangent, GL_STATIC_DRAW);
 
-        auto att_tan = glGetAttribLocation(shader.ID, "tangent");
-        glEnableVertexAttribArray(att_tan);
-        glVertexAttribPointer(att_tan, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+     auto att_tan = glGetAttribLocation(shader.ID, "tangent");
+     glEnableVertexAttribArray(att_tan);
+     glVertexAttribPointer(att_tan, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-        glGenBuffers(1, &VBO_BTG);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO_BTG);
-        glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(GLfloat), bitangent, GL_STATIC_DRAW);
+     glGenBuffers(1, &VBO_BTG);
+     glBindBuffer(GL_ARRAY_BUFFER, VBO_BTG);
+     glBufferData(GL_ARRAY_BUFFER, numVertices * 3 * sizeof(GLfloat), bitangent, GL_STATIC_DRAW);
 
-        auto att_bitan = glGetAttribLocation(shader.ID, "bitangent");
-        glEnableVertexAttribArray(att_bitan);
-        glVertexAttribPointer(att_bitan, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-        delete tangent;
-        delete bitangent;
+     auto att_bitan = glGetAttribLocation(shader.ID, "bitangent");
+     glEnableVertexAttribArray(att_bitan);
+     glVertexAttribPointer(att_bitan, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+     delete tangent;
+     delete bitangent;
+ }
 
-    }
+ // desactive the buffer
+ glBindBuffer(GL_ARRAY_BUFFER, 0);
+ glBindVertexArray(0);
 
-    // desactive the buffer
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-    delete[] data;
+ delete[] data;
 }
 
 void Object::compute_tangent(GLfloat *tangent, GLfloat *bitangent)
@@ -187,20 +186,18 @@ void Object::compute_tangent(GLfloat *tangent, GLfloat *bitangent)
     {
         unsigned int cur_pos = indices.at(i) * 3;
         Vertex v1 = vertices.at(cur_pos);
-        glm::vec3 pos1(v1.Position.x, v1.Position.y, v1.Position.z);
-        glm::vec2 uv1= v1.Texture;
+        glm::vec3 pos1=v1.Position;
+        glm::vec2 uv1 = v1.Texture;
 
         cur_pos = indices.at(i + 1) * 3;
         Vertex v2 = vertices.at(cur_pos);
-        glm::vec3 pos2(v2.Position.x, v2.Position.y, v2.Position.z);
-        glm::vec2 uv2= v2.Texture;
+        glm::vec3 pos2= v2.Position;
+        glm::vec2 uv2 = v2.Texture;
 
-        cur_pos = indices.at(i+2) * 3;
+        cur_pos = indices.at(i + 2) * 3;
         Vertex v3 = vertices.at(cur_pos);
-        glm::vec3 pos3(v3.Position.x, v3.Position.y, v3.Position.z);
-        glm::vec2 uv3= v3.Texture;
-
-        
+        glm::vec3 pos3=v3.Position;
+        glm::vec2 uv3 = v3.Texture;
 
         glm::vec3 edge1 = pos2 - pos1;
         glm::vec3 edge2 = pos3 - pos1;
@@ -217,10 +214,9 @@ void Object::compute_tangent(GLfloat *tangent, GLfloat *bitangent)
                               f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
                               f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z));
 
-
         for (unsigned int k = 0; k < 3; k++)
         {
-            cur_pos = indices.at(i+k) * 3;
+            cur_pos = indices.at(i + k) * 3;
             tangent[cur_pos] = tangent_v.x;
             tangent[cur_pos + 1] = tangent_v.y;
             tangent[cur_pos + 2] = tangent_v.z;
