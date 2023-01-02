@@ -54,10 +54,12 @@ private:
    {
       return 0.0f;
    }
+
    float function_sin(float x, float y)
    {
       return sin(x * y * 10) / 10;
    }
+   
    void generate_terrain();
    void set_indices();
    void generate_heightmap(float (Terrain::*func)(float, float),
