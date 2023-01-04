@@ -4,7 +4,6 @@ in vec3 position;
 in vec3 normal;
 in vec2 tex_coord;
 in vec3 tangent;
-in vec3 bitangent;
 
 out VS_OUT {
     vec3 FragPos;

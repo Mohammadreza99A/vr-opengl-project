@@ -39,7 +39,6 @@ private:
     GLuint normalMap;
     void generate_bricks();
     GLfloat *tangent;
-    GLfloat *bitangent;
 
     GLuint _vbo_tg;
     GLuint _vbo_btg;

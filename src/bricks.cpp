@@ -52,11 +52,6 @@ Bricks::~Bricks()
         tangent = NULL;
     }
 
-    if (bitangent != NULL)
-    {
-        delete bitangent;
-        bitangent = NULL;
-    }
 }
 
 void Bricks::init()
@@ -76,12 +71,11 @@ void Bricks::init()
 void Bricks::compute_tangents()
 {
     tangent = new GLfloat[nb_vertices * 3];
-    bitangent = new GLfloat[nb_vertices * 3];
 
     for (unsigned int i = 0; i < nb_indices; i += 3)
     {
 
-        unsigned int cur_pos = indices[i] * 3;
+        unsigned int cur_pos = indices[i];
         glm::vec3 pos1(vertices[cur_pos], vertices[cur_pos + 1], vertices[cur_pos + 2]);
 
         cur_pos = indices[i + 1] * 3;
@@ -93,10 +87,10 @@ void Bricks::compute_tangents()
         cur_pos = indices[i] * 2;
         glm::vec2 uv1(textures[cur_pos], textures[cur_pos + 1]);
 
-        cur_pos = indices[i + 1] * 2;
+        cur_pos = indices[i + 1];
         glm::vec2 uv2(textures[cur_pos], textures[cur_pos + 1]);
 
-        cur_pos = indices[i + 2] * 2;
+        cur_pos = indices[i + 2] ;
         glm::vec2 uv3(textures[cur_pos], textures[cur_pos + 1]);
 
         glm::vec3 edge1 = pos2 - pos1;
@@ -110,21 +104,13 @@ void Bricks::compute_tangents()
                             f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y),
                             f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z));
 
-        glm::vec3 bitangent_v(f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x),
-                              f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y),
-                              f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z));
-
         tangent_v = glm::normalize(tangent_v);
-        bitangent_v = glm::normalize(bitangent_v);
         for (unsigned int k = 0; k < 3; k++)
         {
             cur_pos = indices[i + k] * 3;
             tangent[cur_pos] = tangent_v.x;
             tangent[cur_pos + 1] = tangent_v.y;
             tangent[cur_pos + 2] = tangent_v.z;
-            bitangent[cur_pos] = bitangent_v.x;
-            bitangent[cur_pos + 1] = bitangent_v.y;
-            bitangent[cur_pos + 2] = bitangent_v.y;
         }
     }
 }
@@ -139,14 +125,6 @@ void Bricks::fill_buffers()
     GLuint tangent_id = glGetAttribLocation(_pid, "tangent");
     glEnableVertexAttribArray(tangent_id);
     glVertexAttribPointer(tangent_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-
-    glGenBuffers(1, &_vbo_btg);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_btg);
-    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), bitangent, GL_STATIC_DRAW);
-
-    GLuint bitangent_id = glGetAttribLocation(_pid, "bitangent");
-    glEnableVertexAttribArray(bitangent_id);
-    glVertexAttribPointer(bitangent_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
 void Bricks::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos)

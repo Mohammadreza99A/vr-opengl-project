@@ -28,6 +28,14 @@ uniform Light light;
 
 uniform vec3 viewPos;
 
+
+float specularCalculation(vec3 N, vec3 L, vec3 V, float shininess ){ 
+			vec3 R = reflect (-L,N);    //reflect (-L,N) is  equivalent to //max (2 * dot(N,L) * N - L , 0.0) ;
+			float cosTheta = dot(R , V); 
+			float spec = pow(max(cosTheta,0.0), shininess); 
+			return light.specular_strength * spec;
+		}
+
 void main()
 {           
     // obtain normal from normal map in range [0,1]
@@ -48,15 +56,16 @@ void main()
 
    // diffuse
    vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
-   float diff = light.diffuse_strength * max(dot(lightDir, normal), 0.0);
+   float diff =  max(dot(lightDir, normal), light.diffuse_strength);
    vec3 diffuse = diff * color;
 
    // specular
    vec3 viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
    vec3 reflectDir = reflect(-lightDir, normal);
    vec3 halfwayDir = normalize(lightDir + viewDir);  
-   float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+   float spec = specularCalculation( normal, lightDir, viewDir, shininess); 
    vec3 specular = vec3(0.2) * spec;
+
 
     float distance = length(light.light_pos - fs_in.FragPos);
     float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);

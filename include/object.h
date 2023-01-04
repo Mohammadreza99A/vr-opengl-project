@@ -19,6 +19,7 @@ struct Vertex
     glm::vec3 Position;
     glm::vec2 Texture;
     glm::vec3 Normal;
+    glm::vec3 Tangent;
 };
 
 class Object
@@ -35,13 +36,12 @@ public:
 
     GLuint VBO, VAO;
 
-    GLuint VBO_TG, VBO_BTG;
 
     glm::mat4 model = glm::mat4(1.0);
 
     Object(const char *path);
     void makeObject(Shader& shader, bool texture = true, bool bump = false);
-    void compute_tangent(GLfloat *tangent, GLfloat *bitangent);
+    void calculateTangents(Vertex &v1, Vertex &v2, Vertex &v3);
     void draw();
 };
 #endif
