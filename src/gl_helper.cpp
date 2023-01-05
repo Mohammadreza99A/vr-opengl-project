@@ -5,6 +5,8 @@ GLfloat cameraPosition[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
+ISoundEngine *soundEngine = createIrrKlangDevice();
+ISound *music;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -119,6 +121,11 @@ void glHelper::mainLoop(GLFWwindow *window)
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // 3D  audio positioning
+        vec3df audioPos(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+        // vec3df audioView(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+        soundEngine->setListenerPosition(vec3df(0, 0, 0), audioPos);
+
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, light_pos,
                      glm::make_vec3(cameraPosition));
@@ -155,7 +162,15 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         glfwSetWindowShouldClose(window, GL_TRUE);
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-        std::cout << "Space key was pressed" << std::endl;
+    {
+        music = soundEngine->play3D("resources/audio/ambiant_music.wav",
+                                    vec3df(0, 0, 0), true, false, true);
+        if (music)
+        {
+            music->setMinDistance(5.0f);
+            music->setPosition(vec3df(5, 5, 0));
+        }
+    }
 
     // Camera input handling
     // Movement with Arrow keys

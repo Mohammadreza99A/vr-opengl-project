@@ -15,11 +15,17 @@ include_directories(include)
 set(INCLUDE_PATH "/usr/include/glm")
 set(LIB_PATH "/usr/lib")
 
+link_directories(${LIB_PATH})
+
 # for glad library
 add_subdirectory(vendor/glad/)
 
 include_directories(${INCLUDE_PATH} vendor/stb/)
-link_directories(${LIB_PATH})
+
+# for irrKlang library
+include_directories(./vendor/irrklang/include)
+link_directories(./vendor/irrklang/linux)
+set(IRRKLANG_LIBRARY libIrrklang.so)
 
 file(GLOB SOURCE_FILES "src/*.cpp" "include/*.h" "include/*.hpp")
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
@@ -36,5 +42,6 @@ add_compile_definitions(PATH_TO_TEXTURE="${CMAKE_CURRENT_SOURCE_DIR}/textures")
 add_compile_definitions(PATH_TO_SHADERS="${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 
 target_link_libraries(${PROJECT_NAME} glad)
+target_link_libraries(${PROJECT_NAME} ${IRRKLANG_LIBRARY})
 target_link_libraries(${PROJECT_NAME} glfw)
 target_link_libraries(${PROJECT_NAME} IL)
