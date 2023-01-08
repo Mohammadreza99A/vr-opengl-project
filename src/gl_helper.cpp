@@ -2,6 +2,7 @@
 
 Camera camera;
 GLfloat cameraPosition[3];
+GLfloat cameraDirection[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -115,6 +116,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     {
         view = camera.getMatrix();
         camera.getPosition(cameraPosition);
+        camera.getDirection(cameraDirection);
         glfwPollEvents();
         double currentTime = glfwGetTime();
 
@@ -123,8 +125,8 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         // 3D  audio positioning
         vec3df audioPos(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-        // vec3df audioView(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-        soundEngine->setListenerPosition(vec3df(0, 0, 0), audioPos);
+        vec3df audioDir(-1.0 * cameraDirection[0], -1.0 * cameraDirection[1], -1.0 * cameraDirection[2]);
+        soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, light_pos,
@@ -164,11 +166,10 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
     {
         music = soundEngine->play3D("resources/audio/ambiant_music.wav",
-                                    vec3df(0, 0, 0), true, false, true);
+                                    vec3df(5, 5, -35), true, false, true);
         if (music)
         {
-            music->setMinDistance(5.0f);
-            music->setPosition(vec3df(5, 5, 0));
+            music->setMinDistance(3.0f);
         }
     }
 
