@@ -46,7 +46,6 @@ void Windmill::draw(const glm::mat4 &view, const glm::mat4 &projection, const gl
 
     bindAllTexture();
 
-    shader->use();
     // 1. send the relevant uniform to the shader
     shader->setMatrix4("M", mill->model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(mill->model)));

@@ -1,7 +1,6 @@
 #ifndef STATUE_HORSE_H
 #define STATUE_HORSE_H
 
-
 #include "shader.h"
 #include "object.h"
 #include "stb_image.h"

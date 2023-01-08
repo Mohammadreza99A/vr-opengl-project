@@ -81,11 +81,12 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Light light(shininess, ambient_strength, diffuse_strength, specular_strength, materialColour);
 
-    Terrain terrain;
-    light.setLight(terrain.getShader());
-    terrain.init(1280, 1280);
+    Terrain terrain(124, 124);
+    // light.setLight(terrain.getShader());
+    terrain.init();
     glm::mat4 terrainModel = glm::mat4(1.0);
-    terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
+    terrainModel = glm::translate(terrainModel, glm::vec3(-500.0, 0.0, -500.0));
+    // terrainModel = glm::scale(terrainModel, glm::vec3(32.0, 32.0, 32.0));
 
     Windmill windmill;
     light.setLight(windmill.getShader());
@@ -128,6 +129,13 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
+    Bricks bricks(3, 10);
+    bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
+
+    Bricks bricks2(3, 10);
+    bricks2.transform(glm::vec3(3.6, 2.0, -36.1), glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
+
+    Barrel barrel;
 
     snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -55, 0);
     snow_particles_manager.set_life_duration_sec(2, 5);
@@ -168,9 +176,16 @@ void glHelper::mainLoop(GLFWwindow *window)
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta,
                      glm::make_vec3(cameraPosition));
 
+        house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+
         double deltaTime = fps(currentTime);
-        float degree = (int(currentTime) % 10 == 0) ? 14.0 : 8.0;
-        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
+        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
+
+        bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+
+        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);

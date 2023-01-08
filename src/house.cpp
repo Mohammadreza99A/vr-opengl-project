@@ -37,7 +37,6 @@ void House::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
 
     bindAllTexture();
 
-    shader->use();
     // 1. send the relevant uniform to the shader
     shader->setMatrix4("M", house->model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(house->model)));
