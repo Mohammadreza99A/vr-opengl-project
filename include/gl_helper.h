@@ -22,6 +22,8 @@
 #include "light.h"
 #include "drawable.h"
 #include "snow.h"
+#include "horse.h"
+
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 720

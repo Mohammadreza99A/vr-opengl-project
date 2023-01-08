@@ -133,6 +133,8 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
+    Horse horse(skyboxCubemap.textureID);
+
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -155,16 +157,19 @@ void glHelper::mainLoop(GLFWwindow *window)
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
 
+        horse.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, glm::vec3(2.0f, 2.0f, 1.0f));
+
         if (isSnowing)
         {
             snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
         }
+
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta,
                      glm::make_vec3(cameraPosition));
 
         double deltaTime = fps(currentTime);
-        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        float degree = (int(currentTime) % 10 == 0) ? 14.0 : 8.0;
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
