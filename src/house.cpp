@@ -19,6 +19,11 @@ House::House()
     glUseProgram(0);
 }
 
+Shader *House::getShader()
+{
+    return this->shader;
+}
+
 void House::cleanup()
 {
     shader->cleanup();
@@ -32,14 +37,13 @@ void House::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
 
     bindAllTexture();
 
-    shader->use();
     // 1. send the relevant uniform to the shader
     shader->setMatrix4("M", house->model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(house->model)));
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_pos);
+    shader->setVector3f("light.light_pos", light_pos);
     shader->setInteger("f_texture", 0);
 
     house->draw();

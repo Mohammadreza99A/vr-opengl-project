@@ -2,7 +2,7 @@
 
 Camera::Camera()
 {
-    this->speed = 4.0f;
+    this->speed = 2.0f;
     this->angle_change_per_second = 1.8f;
 }
 
