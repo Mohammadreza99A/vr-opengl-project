@@ -16,8 +16,10 @@
 #include "sky_box.h"
 #include "terrain.h"
 
+#include "sun.h"
 #include "house.h"
 #include "windmill.h"
+#include "light.h"
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 720

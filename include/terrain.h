@@ -17,6 +17,7 @@ public:
    // sub_x and sub_y define subdivision of the terrain
    // it defines the definition of the terrain
    //  a 4x3 terrain will contain 12 quads
+   Shader *getShader();
    void init(unsigned int sub_x, unsigned int sub_y);
    void draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
              glm::vec3 light_position, glm::vec3 camera_position);
