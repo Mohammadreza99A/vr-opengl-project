@@ -16,8 +16,14 @@
 #include "sky_box.h"
 #include "terrain.h"
 
+#include "sun.h"
 #include "house.h"
 #include "windmill.h"
+#include "light.h"
+#include "drawable.h"
+#include "snow.h"
+#include "horse.h"
+
 #include "bricks.h"
 #include "barrel.h"
 
@@ -40,6 +46,7 @@ namespace glHelper
     void mouse_cursor_callback(GLFWwindow *window, double xpos, double ypos);
     void mouse_scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
     void cleanup(GLFWwindow *window);
+    void wind_func(float pos[3], float ret[3], float time);
 } // namespace glHelper
 
 #endif

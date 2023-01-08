@@ -28,6 +28,11 @@ Windmill::Windmill()
     glUseProgram(0);
 }
 
+Shader *Windmill::getShader()
+{
+    return this->shader;
+}
+
 void Windmill::cleanup()
 {
     shader->cleanup();
@@ -47,7 +52,7 @@ void Windmill::draw(const glm::mat4 &view, const glm::mat4 &projection, const gl
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_pos);
+    shader->setVector3f("light.light_pos", light_pos);
     shader->setInteger("f_texture", 0);
 
     mill->draw();

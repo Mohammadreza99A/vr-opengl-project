@@ -16,8 +16,8 @@ public:
     virtual void set_model_matrix(glm::mat4x4 model);
     virtual void set_view_matrix(glm::mat4x4 view);
     virtual void set_projection_matrix(glm::mat4x4 projection);
-    virtual void set_light_pos(GLfloat light_position[3]);
-    virtual void set_camera_pos(GLfloat camera_position[3]);
+    virtual void set_light_pos(glm::vec3 light_position);
+    virtual void set_camera_pos(glm::vec3 camera_position);
     virtual void set_camera_direction(GLfloat camera_direction[3]);
     virtual void set_MVP_matrices(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection);
     virtual void set_shadow_matrix(glm::mat4x4 shadow_mat);

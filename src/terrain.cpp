@@ -26,7 +26,7 @@ void Terrain::init()
     }
 
     // generates heightmap as well as normals
-    generate_heightmap(&Terrain::function_flat, sub_x, sub_y);
+    generate_heightmap(&Terrain::function_sin, sub_x, sub_y);
 
     // fills the buffers
     generate_terrain();
