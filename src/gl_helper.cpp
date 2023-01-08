@@ -3,9 +3,12 @@
 Camera camera;
 bool isSunMoving = true;
 GLfloat cameraPosition[3];
+GLfloat cameraDirection[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
+ISoundEngine *soundEngine = createIrrKlangDevice();
+ISound *music;
 bool isSnowing = true;
 
 GLFWwindow *glHelper::initGlfwWindow()
@@ -148,6 +151,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     {
         view = camera.getMatrix();
         camera.getPosition(cameraPosition);
+        camera.getDirection(cameraDirection);
         glfwPollEvents();
         double currentTime = glfwGetTime();
         snow_particles_manager.set_time(currentTime);
@@ -171,6 +175,11 @@ void glHelper::mainLoop(GLFWwindow *window)
         {
             snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
         }
+
+        // 3D  audio positioning
+        vec3df audioPos(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+        vec3df audioDir(-1.0 * cameraDirection[0], -1.0 * cameraDirection[1], -1.0 * cameraDirection[2]);
+        soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta,
@@ -213,7 +222,14 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         glfwSetWindowShouldClose(window, GL_TRUE);
 
     if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
-        std::cout << "Space key was pressed" << std::endl;
+    {
+        music = soundEngine->play3D("resources/audio/ambiant_music.wav",
+                                    vec3df(5, 5, -35), true, false, true);
+        if (music)
+        {
+            music->setMinDistance(3.0f);
+        }
+    }
 
     // Camera input handling
     // Movement with Arrow keys

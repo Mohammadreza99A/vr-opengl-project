@@ -10,6 +10,9 @@
 #include <map>
 #include <vector>
 
+#include "irrKlang.h"
+using namespace irrklang;
+
 #include "camera.h"
 #include "shader.h"
 #include "object.h"
