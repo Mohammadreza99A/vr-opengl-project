@@ -6,6 +6,7 @@ GLfloat cameraPosition[3];
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
+bool isSnowing = true;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -95,6 +96,11 @@ void glHelper::mainLoop(GLFWwindow *window)
     SkyBox skyboxCubemap;
     Sun sun;
 
+    GLfloat light_position[3];
+    light_position[0] = light_pos.x;
+    light_position[1] = light_pos.y;
+    light_position[2] = light_pos.z;
+
     camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
     camera.init(5.5f, &terrain);
     camera.setSpeed(5.0f);
@@ -120,6 +126,13 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
+    unsigned int nbOfParticles = 20000;
+    SnowManager snow_particles_manager(nbOfParticles);
+
+    snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -55, 0);
+    snow_particles_manager.set_life_duration_sec(2, 5);
+    snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
+
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -127,6 +140,8 @@ void glHelper::mainLoop(GLFWwindow *window)
         camera.getPosition(cameraPosition);
         glfwPollEvents();
         double currentTime = glfwGetTime();
+        snow_particles_manager.set_time(currentTime);
+
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glm::vec3 delta = light_pos;
@@ -140,6 +155,10 @@ void glHelper::mainLoop(GLFWwindow *window)
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
 
+        if (isSnowing)
+        {
+            snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
+        }
         // draw the terrain
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta,
                      glm::make_vec3(cameraPosition));
@@ -196,6 +215,11 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         camera.inputHandling('I', 0.15);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         camera.inputHandling('K', 0.15);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        isSnowing = true;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        isSnowing = false;
 
     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS)
         isSunMoving = true;
