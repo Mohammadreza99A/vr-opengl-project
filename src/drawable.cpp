@@ -24,18 +24,18 @@ void Drawable::set_projection_matrix(glm::mat4x4 projection)
     this->projection_matrix = projection;
 }
 
-void Drawable::set_light_pos(GLfloat light_position[3])
+void Drawable::set_light_pos(glm::vec3 light_position)
 {
-    this->light_position[0] = light_position[0];
-    this->light_position[1] = light_position[1];
-    this->light_position[2] = light_position[2];
+    this->light_position[0] = light_position.x;
+    this->light_position[1] = light_position.y;
+    this->light_position[2] = light_position.z;
 }
 
-void Drawable::set_camera_pos(GLfloat camera_position[3])
+void Drawable::set_camera_pos(glm::vec3  camera_position)
 {
-    this->camera_position[0] = camera_position[0];
-    this->camera_position[1] = camera_position[1];
-    this->camera_position[2] = camera_position[2];
+    this->camera_position[0] = camera_position.x;
+    this->camera_position[1] = camera_position.y;
+    this->camera_position[2] = camera_position.z;
 }
 
 void Drawable::set_camera_direction(GLfloat camera_direction[3])

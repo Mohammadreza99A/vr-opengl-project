@@ -16,6 +16,7 @@ private:
 
 public:
     House();
+    Shader *getShader();
     void cleanup();
     void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos);
 

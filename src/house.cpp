@@ -7,7 +7,7 @@ House::House()
     char path[] = PATH_TO_OBJECTS "/farm_house.obj";
     house = new Object(path);
     house->makeObject(*shader);
-    house->model = glm::translate(house->model, glm::vec3(5.3, 0.0, 0.0));
+    house->model = glm::translate(house->model, glm::vec3(5.0, 5.0, -30.0));
     house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house->model = glm::scale(house->model, glm::vec3(0.5, 0.5, 0.5));
 
@@ -17,6 +17,11 @@ House::House()
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+Shader *House::getShader()
+{
+    return this->shader;
 }
 
 void House::cleanup()
@@ -39,7 +44,7 @@ void House::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_pos);
+    shader->setVector3f("light.light_pos", light_pos);
     shader->setInteger("f_texture", 0);
 
     house->draw();
