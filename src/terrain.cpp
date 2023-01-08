@@ -2,10 +2,15 @@
 
 Terrain::Terrain()
 {
-    shader = new Shader(PATH_TO_SHADERS "/terrainV.glsl", PATH_TO_SHADERS "/terrainF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
+}
+
+Shader *Terrain::getShader()
+{
+    return this->shader;
 }
 
 void Terrain::init(unsigned int sub_x, unsigned int sub_y)
@@ -42,7 +47,7 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     }
 
     // generates heightmap as well as normals
-    generate_heightmap(&Terrain::function_flat, sub_x, sub_y);
+    generate_heightmap(&Terrain::function_sin, sub_x, sub_y);
 
     // fills the buffers
     generate_terrain();
@@ -69,13 +74,13 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
 
     GLuint texpoint_id = glGetAttribLocation(_pid, "tex_coord");
     glEnableVertexAttribArray(texpoint_id);
-    glVertexAttribPointer(texpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(texpoint_id, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
     glGenBuffers(1, &_vbo_idx);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-    initTexture(PATH_TO_TEXTURE "/skybox/negx.jpg");
+    initTexture(PATH_TO_TEXTURE "/terrain/snow.jpg");
 
     glBindVertexArray(0);
 }
@@ -89,7 +94,7 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
     glBindVertexArray(_vao);
 
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_position);
+    shader->setVector3f("light.light_pos", light_position);
 
     shader->setMatrix4("M", model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));
@@ -151,7 +156,7 @@ void Terrain::initTexture(std::string path)
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
     // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -277,7 +282,6 @@ void Terrain::set_indices()
             unsigned int v3 = (j + 1) * sub_x + i + 1;
 
             unsigned int index_ptr = (j * (sub_x - 1) + i) * 6;
-            // printf("%d\n", index_ptr);
 
             indices[index_ptr] = v0;
             indices[index_ptr + 1] = v3;
@@ -286,8 +290,6 @@ void Terrain::set_indices()
             indices[index_ptr + 3] = v0;
             indices[index_ptr + 4] = v2;
             indices[index_ptr + 5] = v3;
-
-            // printf("index: %d, %d, %d || %d, %d, %d\n", v0, v3, v1, v0, v2, v3);
         }
     }
 }
