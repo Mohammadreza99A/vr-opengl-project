@@ -82,7 +82,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Terrain terrain;
     light.setLight(terrain.getShader());
-    terrain.init(1024, 1024);
+    terrain.init(1280, 1280);
     glm::mat4 terrainModel = glm::mat4(1.0);
     terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
 
