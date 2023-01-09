@@ -2,28 +2,30 @@
 
 Horse::Horse(GLuint skyboxID)
 {
-
+    horse_texture_id = skyboxID;
+    float scale=5.0;
     // compile the shaders.
+    float x=-10.0,y=3.0,z=-35;
     shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl");
+
 
     char path1[] = PATH_TO_OBJECTS "/horse.obj";
     horse = new Object(path1);
-    horse->makeObject(*shaderHorse);
-    // horse->model = glm::translate(horse->model, glm::vec3(15.0, 0.0, 0.0));
-    horse->model = glm::scale(horse->model, glm::vec3(1.5, 1.5, 1.5));
+    horse->makeObject(*shaderHorse,false);
+    horse->model = glm::translate(horse->model, glm::vec3(x, y, z));
+    horse->model = glm::scale(horse->model, glm::vec3(scale,scale, scale));
+    render();
 
     shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
 
     char path2[] = PATH_TO_OBJECTS "/base.obj";
     base = new Object(path2);
     base->makeObject(*shaderBase);
-    // base->model = glm::translate(base->model, glm::vec3(15.0, 0.0, 0.0));
-    base->model = glm::scale(base->model, glm::vec3(1.5, 1.5, 1.5));
+    base->model = glm::translate(base->model, glm::vec3(x, y, z));
+    base->model = glm::scale(base->model, glm::vec3(scale,scale, scale));
 
-    // load terrain textures
-    initTexture(PATH_TO_TEXTURE "/statue/statue_horse.png");
+    initTexture(PATH_TO_TEXTURE "/statue/statue_horse.jpg");
 
-    render(skyboxID);
 
     // to avoid the current object being polluted
     glBindVertexArray(0);
@@ -34,10 +36,11 @@ void Horse::cleanup()
 {
     shaderHorse->cleanup();
     shaderBase->cleanup();
+    glDeleteTextures(1, &base_id);
     glDeleteTextures(1, &horse_texture_id);
 }
 
-void Horse::render(GLuint skyboxID)
+void Horse::render()
 {
 
     glm::vec3 materialColour = glm::vec3(1.0, 1.0, 1.0);
@@ -46,7 +49,7 @@ void Horse::render(GLuint skyboxID)
     float specular = 0.3;
 
     shaderHorse->use();
-    shaderHorse->setInteger("cubemap_sampler", 0);
+    shaderHorse->setInteger("cubemap_sampler", 1);
 
     shaderHorse->setFloat("shininess", 40.0f);
     shaderHorse->setVector3f("materialColour", materialColour);
@@ -59,49 +62,16 @@ void Horse::render(GLuint skyboxID)
 
     shaderHorse->setVector3f("materialColour", materialColour);
 
-    GLuint cubeMapTexture;
-    glGenTextures(1, &cubeMapTexture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxID);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, horse_texture_id);
 
     shaderHorse->setFloat("refractionIndice", 1.63);
 }
 
-unsigned int Horse::loadCubemap(std::vector<std::string> faces)
-{
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrComponents;
-    for (unsigned int i = 0; i < faces.size(); i++)
-    {
-        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrComponents, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
-}
 
 void Horse::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos, const glm::vec3 &light_color)
 {
-
     bindAllTexture();
-
     shaderHorse->use();
     // 1. send the relevant uniform to the shader
     shaderHorse->setMatrix4("M", horse->model);
@@ -148,8 +118,8 @@ void Horse::initTexture(std::string path)
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    glGenTextures(1, &horse_texture_id);
-    glBindTexture(GL_TEXTURE_2D, horse_texture_id);
+    glGenTextures(1, &base_id);
+    glBindTexture(GL_TEXTURE_2D, base_id);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -174,5 +144,8 @@ void Horse::initTexture(std::string path)
 void Horse::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, base_id);
+
+    glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, horse_texture_id);
 }

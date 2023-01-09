@@ -98,6 +98,9 @@ void glHelper::mainLoop(GLFWwindow *window)
     light.setLight(house.getShader());
 
     SkyBox skyboxCubemap;
+
+    Horse horse(skyboxCubemap.textureID);
+
     Sun sun;
 
     GLfloat light_position[3];
@@ -129,7 +132,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
         return deltaTime;
     };
-
+    
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
     Bricks bricks(3, 10);
@@ -144,7 +147,6 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
-    Horse horse(skyboxCubemap.textureID);
 
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
