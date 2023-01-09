@@ -135,10 +135,10 @@ void glHelper::mainLoop(GLFWwindow *window)
     
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
-    Bricks bricks(3, 10);
+    Bricks bricks(3,9);
     bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
 
-    Bricks bricks2(3, 10);
+    Bricks bricks2(3, 9);
     bricks2.transform(glm::vec3(3.6, 2.0, -36.1), glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
 
     Barrel barrel;

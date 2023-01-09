@@ -14,7 +14,7 @@ Horse::Horse(GLuint skyboxID)
     horse->makeObject(*shaderHorse,false);
     horse->model = glm::translate(horse->model, glm::vec3(x, y, z));
     horse->model = glm::scale(horse->model, glm::vec3(scale,scale, scale));
-    render();
+    
 
     shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
 
@@ -25,7 +25,7 @@ Horse::Horse(GLuint skyboxID)
     base->model = glm::scale(base->model, glm::vec3(scale,scale, scale));
 
     initTexture(PATH_TO_TEXTURE "/statue/statue_horse.jpg");
-
+    render();
 
     // to avoid the current object being polluted
     glBindVertexArray(0);
@@ -61,11 +61,22 @@ void Horse::render()
     shaderHorse->setFloat("light.quadratic", 0.07);
 
     shaderHorse->setVector3f("materialColour", materialColour);
-
+    shaderHorse->setFloat("refractionIndice", 1.63);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, horse_texture_id);
 
-    shaderHorse->setFloat("refractionIndice", 1.63);
+    
+
+    shaderBase->use();
+
+    shaderBase->setFloat("shininess", 0.0f);
+    shaderBase->setVector3f("materialColour", materialColour);
+    shaderBase->setFloat("light.ambient_strength", ambient);
+    shaderBase->setFloat("light.diffuse_strength", diffuse);
+    shaderBase->setFloat("light.specular_strength", specular);
+    shaderBase->setFloat("light.constant", 1.0);
+    shaderBase->setFloat("light.linear", 0.3);
+    shaderBase->setFloat("light.quadratic", 0.07);
 }
 
 
