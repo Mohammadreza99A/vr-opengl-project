@@ -84,12 +84,10 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Light light(shininess, ambient_strength, diffuse_strength, specular_strength, materialColour);
 
-    Terrain terrain(124, 124);
-    // light.setLight(terrain.getShader());
-    terrain.init();
+    Terrain terrain;
+    terrain.init(1280, 1280);
     glm::mat4 terrainModel = glm::mat4(1.0);
-    terrainModel = glm::translate(terrainModel, glm::vec3(-500.0, 0.0, -500.0));
-    // terrainModel = glm::scale(terrainModel, glm::vec3(32.0, 32.0, 32.0));
+    terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
 
     Windmill windmill;
     light.setLight(windmill.getShader());

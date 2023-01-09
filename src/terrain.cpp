@@ -1,16 +1,32 @@
 #include "terrain.h"
 
-Terrain::Terrain(unsigned int sub_x, unsigned int sub_y): MatrixSquares(sub_x, sub_y)
+Terrain::Terrain()
 {
-    shader = new Shader(PATH_TO_SHADERS "/terrainV.glsl", PATH_TO_SHADERS "/terrainF.glsl");
+    shader = new Shader("shaders/terrainV.glsl", "shaders/terrainF.glsl");
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
 }
 
-void Terrain::init()
+void Terrain::init(unsigned int sub_x, unsigned int sub_y)
 {
-    MatrixSquares::init();
+
+    glGenVertexArrays(1, &_vao);
+    glBindVertexArray(_vao);
+
+    this->sub_x = sub_x;
+    this->sub_y = sub_y;
+    nb_vertices = sub_x * sub_y;
+    unsigned int nb_quads = (sub_x - 1) * (sub_y - 1);
+    unsigned int nb_tris = nb_quads * 2;
+    nb_indices = nb_tris * 3;
+
+    vertices = new GLfloat[nb_vertices * 3];
+    indices = new GLuint[nb_indices];
+    normals = new GLfloat[nb_vertices * 3];
+    textures = new GLfloat[nb_vertices * 2];
+
+    // fill the indices array
     set_indices();
 
     heightmap.resize(sub_x);
@@ -31,10 +47,35 @@ void Terrain::init()
     // fills the buffers
     generate_terrain();
 
-    fill_buffers();
+    glGenBuffers(1, &_vbo_normals);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_normals);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), normals, GL_STATIC_DRAW);
 
-    texture_id=initTexture(PATH_TO_TEXTURE "/terrain/terrain_snow.jpg");
-    
+    GLuint norm_id = glGetAttribLocation(_pid, "normal");
+    glEnableVertexAttribArray(norm_id);
+    glVertexAttribPointer(norm_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glGenBuffers(1, &_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 3 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+
+    GLuint vpoint_id = glGetAttribLocation(_pid, "position");
+    glEnableVertexAttribArray(vpoint_id);
+    glVertexAttribPointer(vpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glGenBuffers(1, &_vbo_textures);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_textures);
+    glBufferData(GL_ARRAY_BUFFER, nb_vertices * 2 * sizeof(GLfloat), textures, GL_STATIC_DRAW);
+
+    GLuint texpoint_id = glGetAttribLocation(_pid, "tex_coord");
+    glEnableVertexAttribArray(texpoint_id);
+    glVertexAttribPointer(texpoint_id, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+
+    glGenBuffers(1, &_vbo_idx);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
+
+    initTexture(PATH_TO_TEXTURE "/terrain/terrain_snow.jpg");
 
     glBindVertexArray(0);
 }
@@ -43,9 +84,8 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
                    glm::vec3 light_position, glm::vec3 camera_position)
 {
 
-    
-    shader->use();
     bindAllTexture();
+    shader->use();
     glBindVertexArray(_vao);
 
     shader->setVector3f("u_view_pos", camera_position);
@@ -55,7 +95,7 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
     shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
-    shader->setInteger("texture1", 0);
+    shader->setInteger("f_texture", 0);
 
     glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_INT, 0);
     glUseProgram(0);
@@ -101,10 +141,45 @@ float Terrain::get_height(float pos_x, float pos_y)
     return height;
 }
 
+void Terrain::initTexture(char const *path)
+{
+
+    glGenTextures(1, &terrain_texture_id);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+}
+
 void Terrain::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_id);
+    glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
 }
 
 void Terrain::generate_terrain()
@@ -115,18 +190,18 @@ void Terrain::generate_terrain()
         {
 
             // makes that the relatives go from -1 to 1
-            GLfloat relative_x = (float(i) / (sub_x - 1)) * SIZE -1 ;
+            GLfloat relative_x = (float(i) / (sub_x - 1)) * 2 - 1;
             // rel_z not y as y is up
-            GLfloat relative_z = (float(j) / (sub_y - 1)) * SIZE -1;
+            GLfloat relative_z = (float(j) / (sub_y - 1)) * 2 - 1;
 
             unsigned int cur_pos = (j * sub_x + i) * 3;
 
             vertices[cur_pos] = relative_x;
-            vertices[cur_pos + 1] = 0; //(*this.*func)(relative_x, relative_z);
+            vertices[cur_pos + 1] = heightmap[i][j]; //(*this.*func)(relative_x, relative_z);
             vertices[cur_pos + 2] = relative_z;
 
-            textures[((j * sub_x + i) * 2)] = (float(i) / (sub_x - 1))*70;
-            textures[((j * sub_x + i) * 2) + 1] = (float(j) / (sub_y - 1))*70;
+            textures[((j * sub_x + i) * 2)] = (float(i) / (sub_x - 1)) * 70;
+            textures[((j * sub_x + i) * 2) + 1] = (float(j) / (sub_y - 1)) * 70;
 
             normals[cur_pos + 0] = heightmap_normals[i][j][0]; // cross_product_vec[0];
             normals[cur_pos + 1] = heightmap_normals[i][j][1];
@@ -145,9 +220,9 @@ void Terrain::generate_heightmap(float (Terrain::*func)(float, float), unsigned 
         {
 
             // makes that the relatives go from -1 to 1
-            GLfloat relative_x = (float(i) / (grid_x - 1)) * SIZE -1;
+            GLfloat relative_x = (float(i) / (grid_x - 1)) * 2 - 1;
             // y dir is up
-            GLfloat relative_z = (float(j) / (grid_y - 1)) * SIZE -1;
+            GLfloat relative_z = (float(j) / (grid_y - 1)) * 2 - 1;
 
             // fill height map for each vertex
             heightmap[i][j] = (*this.*func)(relative_x, relative_z);
@@ -177,6 +252,46 @@ void Terrain::generate_heightmap(float (Terrain::*func)(float, float), unsigned 
             heightmap_normals[i][j][0] = cross_product_vec[0];
             heightmap_normals[i][j][1] = cross_product_vec[1];
             heightmap_normals[i][j][2] = cross_product_vec[2];
+        }
+    }
+}
+
+void Terrain::normalize_vec3(float vec[3])
+{
+    float length = sqrt(vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2]);
+
+    vec[0] = vec[0] / length;
+    vec[1] = vec[1] / length;
+    vec[2] = vec[2] / length;
+}
+
+void Terrain::cross_product(float vec_a[3], float vec_b[3], float vec_out[3])
+{
+    vec_out[0] = vec_a[1] * vec_b[2] - vec_a[2] * vec_b[1];
+    vec_out[1] = vec_a[2] * vec_b[0] - vec_a[0] * vec_b[2];
+    vec_out[2] = vec_a[0] * vec_b[1] - vec_a[1] * vec_b[0];
+}
+
+void Terrain::set_indices()
+{
+    for (uint j = 0; j < sub_y - 1; j++)
+    {
+        for (uint i = 0; i < sub_x - 1; i++)
+        {
+            unsigned int v0 = j * sub_x + i;
+            unsigned int v1 = j * sub_x + i + 1;
+            unsigned int v2 = (j + 1) * sub_x + i;
+            unsigned int v3 = (j + 1) * sub_x + i + 1;
+
+            unsigned int index_ptr = (j * (sub_x - 1) + i) * 6;
+
+            indices[index_ptr] = v0;
+            indices[index_ptr + 1] = v3;
+            indices[index_ptr + 2] = v1;
+
+            indices[index_ptr + 3] = v0;
+            indices[index_ptr + 4] = v2;
+            indices[index_ptr + 5] = v3;
         }
     }
 }
