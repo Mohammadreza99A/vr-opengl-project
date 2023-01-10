@@ -130,10 +130,10 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
         return deltaTime;
     };
-    
+
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
-    Bricks bricks(3,9);
+    Bricks bricks(3, 9);
     bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
 
     Bricks bricks2(3, 9);
@@ -141,10 +141,9 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Barrel barrel;
 
-    snow_particles_manager.set_emiter_boundary(-20, 20, 29, 31, -55, 0);
+    snow_particles_manager.set_emiter_boundary(-384, 384, 29, 31, -384, 384);
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
-
 
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
@@ -162,7 +161,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         if (isSunMoving)
         {
-            delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, sin(currentTime / 2) * 100.0f, cos(currentTime / 2) * 100.0f);
+            delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
 
         house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
@@ -182,15 +181,13 @@ void glHelper::mainLoop(GLFWwindow *window)
         soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
         // draw the terrain
-        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta,
-                     glm::make_vec3(cameraPosition));
+        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
 
-        house.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
         barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, degree);
+        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
         bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 

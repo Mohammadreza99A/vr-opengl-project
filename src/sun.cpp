@@ -7,8 +7,7 @@ Sun::Sun()
 
     char pathToSun[] = PATH_TO_OBJECTS "/sun.obj";
     sun = new Object(pathToSun);
-    sun->makeObject(*shader_sun, false);
-    sun->model = glm::scale(sun->model, glm::vec3(2.0f, 2.0f, 1.0f));
+    sun->makeObject(*shader_sun);
     glBindVertexArray(0);
     glUseProgram(0);
 }
@@ -71,6 +70,7 @@ void Sun::turn(glm::vec3 &delta)
 {
     sun->model = glm::mat4(1.0f);
     sun->model = glm::translate(sun->model, delta);
+    sun->model = glm::scale(sun->model, glm::vec3(5, 5, 5));
 }
 
 void Sun::bindAllTexture()

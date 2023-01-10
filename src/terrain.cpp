@@ -2,7 +2,7 @@
 
 Terrain::Terrain()
 {
-    shader = new Shader("shaders/terrainV.glsl", "shaders/terrainF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/terrainV.glsl", PATH_TO_SHADERS "/terrainF.glsl");
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
