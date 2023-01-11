@@ -2,11 +2,11 @@
 
 House::House()
 {
-    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/shadowVertexShader.glsl", PATH_TO_SHADERS "/shadowFragShader.glsl");
 
     char path[] = PATH_TO_OBJECTS "/farm_house.obj";
     house = new Object(path);
-    house->makeObject(*shader);
+    house->makeObject(*shader, true, false, true);
     house->model = glm::translate(house->model, glm::vec3(5.0, 5.0, -30.0));
     house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house->model = glm::scale(house->model, glm::vec3(0.5, 0.5, 0.5));
@@ -47,6 +47,43 @@ void House::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
     shader->setInteger("f_texture", 0);
 
     house->draw();
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void House::drawShadow(const glm::mat4 &view, const glm::mat4 &projection,
+                       const glm::vec3 &camera_position, const glm::vec3 &light_pos, GLuint depth_fbo)
+{
+
+    shader->use();
+    glClearDepth(1.0f);
+
+    // Bind the "depth only" FBO and set the viewport to the size
+    // of the depth texture
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+    glViewport(0, 0, 1024, 720);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    // Enable polygon offset to resolve depth-fighting isuses
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(2.0f, 4.0f);
+
+    // 1. send the relevant uniform to the shader
+    shader->setMatrix4("M", house->model);
+    shader->setMatrix4("itM", glm::transpose(glm::inverse(house->model)));
+    shader->setMatrix4("V", view);
+    shader->setMatrix4("P", projection);
+    shader->setVector3f("u_view_pos", camera_position);
+    shader->setVector3f("light.light_pos", light_pos);
+    shader->setInteger("f_texture", 0);
+
+    house->draw();
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glBindVertexArray(0);
     glUseProgram(0);

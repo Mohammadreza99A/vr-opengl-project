@@ -100,7 +100,7 @@ Object::Object(const char *path)
     numVertices = vertices.size();
 }
 
-void Object::makeObject(Shader &shader, bool texture, bool bump)
+void Object::makeObject(Shader &shader, bool texture, bool bump, bool has_shadow_buffer)
 {
     /* This is a working but not perfect solution, you can improve it if you need/want
      * What happens if you call this function twice on an Model ?
@@ -156,6 +156,23 @@ void Object::makeObject(Shader &shader, bool texture, bool bump)
         auto att_tan = glGetAttribLocation(shader.ID, "tangent");
         glEnableVertexAttribArray(att_tan);
         glVertexAttribPointer(att_tan, 3, GL_FLOAT, false, 11 * sizeof(float), (void *)(8 * sizeof(float)));
+    }
+
+    glUniform1ui(glGetUniformLocation(shader.ID, "shadow_buffer_tex_size"), this->shadow_buffer_texture_width);
+
+    if (has_shadow_buffer)
+    {
+        glUniformMatrix4fv(glGetUniformLocation(shader.ID, "shadow_matrix"), 1, GL_FALSE, glm::value_ptr(this->shadow_matrix));
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, _shadow_texture_id);
+        GLuint tex_id = glGetUniformLocation(shader.ID, "shadow_buffer_tex");
+        glUniform1i(tex_id, 1 /*GL_TEXTURE0*/);
+    }
+
+    if (has_shadow_buffer)
+    {
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     // desactive the buffer

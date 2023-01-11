@@ -24,6 +24,8 @@ using namespace irrklang;
 #include "windmill.h"
 #include "light.h"
 #include "drawable.h"
+#include "framebuffer.h"
+#include "depth_fb.h"
 #include "snow.h"
 #include "horse.h"
 
