@@ -3,9 +3,9 @@
 Horse::Horse(GLuint skyboxID)
 {
     horse_texture_id = skyboxID;
-    float scale=5.0;
+    float scale=8.0;
     // compile the shaders.
-    float x=-10.0,y=3.0,z=-35;
+    float x=0.0,y=1.5,z=-60;
     shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl");
 
 

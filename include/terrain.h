@@ -9,6 +9,8 @@
 #include "shader.h"
 #include "stb_image.h"
 
+#include "tools.h"
+
 class Terrain
 {
 public:
@@ -22,8 +24,8 @@ public:
              glm::vec3 light_position, glm::vec3 camera_position);
    void cleanup();
    float get_height(float pos_x, float pos_y);
-   void initTexture(char const *path);
    void bindAllTexture();
+   Shader *getShader();
 
 private:
    GLuint _vao;
@@ -35,6 +37,11 @@ private:
    Shader *shader;
 
    GLuint terrain_texture_id;
+   GLuint r_texture_id;
+   GLuint g_texture_id;
+   GLuint b_texture_id;
+
+   GLuint blend_map;
 
    unsigned int sub_x;
    unsigned int sub_y;
