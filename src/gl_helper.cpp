@@ -10,6 +10,8 @@ static double prevScrollYOffset = 0;
 ISoundEngine *soundEngine = createIrrKlangDevice();
 ISound *music;
 bool isSnowing = true;
+Transform tree_transf;
+Tree *tree;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -127,7 +129,6 @@ void glHelper::mainLoop(GLFWwindow *window)
             prev = now;
             const double fpsCount = (double)deltaFrame / deltaTime;
             deltaFrame = 0;
-            std::cout << "\r FPS: " << fpsCount << std::endl;
         }
         return deltaTime;
     };
@@ -146,6 +147,12 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
+    tree = new Tree;
+    tree->init();
+    tree->load();
+    tree_transf.translate(30.0f, 0.5f, -20.0f);
+    tree_transf.scale(5.0f, 5.0f, 5.0f);
+
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -154,6 +161,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         camera.getDirection(cameraDirection);
         glfwPollEvents();
         double currentTime = glfwGetTime();
+        static float prevTime = 0;
         snow_particles_manager.set_time(currentTime);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -164,6 +172,11 @@ void glHelper::mainLoop(GLFWwindow *window)
         {
             delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
+
+        tree->setMVP(tree_transf.get_matrix(), view, perspective);
+        tree->setLightPos(glm::value_ptr(light_pos));
+        tree->move_leaves(currentTime - prevTime);
+        tree->draw();
 
         house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
@@ -199,6 +212,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
+        prevTime = currentTime;
         glfwSwapBuffers(window);
     }
 }

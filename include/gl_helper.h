@@ -18,6 +18,7 @@ using namespace irrklang;
 #include "object.h"
 #include "sky_box.h"
 #include "terrain.h"
+#include "transform.h"
 
 #include "sun.h"
 #include "house.h"
@@ -26,6 +27,7 @@ using namespace irrklang;
 #include "drawable.h"
 #include "snow.h"
 #include "horse.h"
+#include "tree.h"
 
 #include "bricks.h"
 #include "barrel.h"
