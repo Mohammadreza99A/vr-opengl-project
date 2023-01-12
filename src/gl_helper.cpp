@@ -101,6 +101,9 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Sun sun;
 
+    Dog dog;
+    light.setLight(dog.getShader());
+
     GLfloat light_position[3];
     light_position[0] = light_pos.x;
     light_position[1] = light_pos.y;
@@ -165,6 +168,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
 
         house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
+
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
 
@@ -187,6 +191,7 @@ void glHelper::mainLoop(GLFWwindow *window)
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        dog.draw(view, perspective, glm::make_vec3(cameraPosition), delta, currentTime);
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
         bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
