@@ -3,22 +3,36 @@
 Dog::Dog()
 {
     shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    previousTime = 0;
 
-    obj_paths = { PATH_TO_OBJECTS "/dog.obj", PATH_TO_OBJECTS "/dog1.obj"};
-
-    current_frame = 0;
-    num_frames = obj_paths.size();
-    dog = new Object(obj_paths[current_frame]);
-    dog->makeObject(*shader);
-    dog->model = glm::translate(dog->model, glm::vec3(15.0, 5.0, -30.0));
-    // dog->model = glm::rotate(dog->model, glm::radians(-75.f), glm::vec3(1.0, 0.0, 0.0));
-
-
+    initKeyframe();
     initTexture(PATH_TO_TEXTURE "/dog/dog.png");
 
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+void Dog::initKeyframe()
+{
+    objectPaths = {PATH_TO_OBJECTS "/dog_inter_left.obj", PATH_TO_OBJECTS "/dog_inter_right.obj", PATH_TO_OBJECTS "/dog_right.obj", PATH_TO_OBJECTS "/dog_left.obj"};
+
+    currentFrame = 0;
+    numOfFrames = objectPaths.size();
+
+    for (int i = 0; i < numOfFrames; i++)
+    {
+
+        obj.push_back(new Object(objectPaths[i]));
+    }
+
+    int numOfObjects = obj.size();
+    for (int i = 0; i < numOfObjects; i++)
+    {
+
+        obj[i]->makeObject(*shader);
+    }
+    dog = obj[currentFrame];
 }
 
 Shader *Dog::getShader()
@@ -29,10 +43,10 @@ Shader *Dog::getShader()
 void Dog::cleanup()
 {
     shader->cleanup();
-    glDeleteTextures(1, &dog_texture_id);
+    glDeleteTextures(1, &dogTextureID);
 }
 
-void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos,double current_frame)
+void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPosition, const glm::vec3 &lightPosition, double current_frame)
 {
 
     walk(current_frame);
@@ -45,8 +59,8 @@ void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::ve
     shader->setMatrix4("itM", glm::transpose(glm::inverse(dog->model)));
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
-    shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("light.light_pos", light_pos);
+    shader->setVector3f("u_view_pos", cameraPosition);
+    shader->setVector3f("light.light_pos", lightPosition);
     shader->setInteger("f_texture", 0);
 
     dog->draw();
@@ -54,17 +68,27 @@ void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::ve
     glBindVertexArray(0);
     glUseProgram(0);
 }
-void Dog::walk(double current_frame){
-    bool move = (rand() % 50) == 2 ? true : false;
-    this->current_frame = (this->current_frame + 1) % num_frames;
+void Dog::walk(double currentTime)
+{
+    bool move = (rand() % 10) == 2 ? true : false;
+    currentFrame = (currentFrame + 1) % numOfFrames;
+    double deltaTime = sin(currentTime / 2);
 
-    
-    if (move){
-
-    dog= new Object(obj_paths[this->current_frame]);
-    dog->model = glm::translate(dog->model, glm::vec3(15.0, 0.0, -30.0) + glm::vec3(sin(current_frame)*10, 5.0 , sin(current_frame)*10));
+    if (move)
+    {
+        dog = obj[currentFrame];
     }
-    dog->makeObject(*shader);
+
+    dog->model = glm::mat4(1.0f);
+    dog->model = glm::scale(dog->model, glm::vec3(0.5f));
+    dog->model = glm::translate(dog->model, glm::vec3(-5.0, 5.0, -50.0 + deltaTime * 5));
+    dog->model = glm::rotate(dog->model, glm::radians(-75.f), glm::vec3(0.0, 1.0, 0.0));
+
+    if ((deltaTime - previousTime) > 0.0)
+    {
+        dog->model = glm::rotate(dog->model, glm::radians(-175.f), glm::vec3(0.0, 1.0, 0.0));
+    }
+    previousTime = deltaTime;
 }
 
 void Dog::initTexture(std::string path)
@@ -72,8 +96,8 @@ void Dog::initTexture(std::string path)
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    glGenTextures(1, &dog_texture_id);
-    glBindTexture(GL_TEXTURE_2D, dog_texture_id);
+    glGenTextures(1, &dogTextureID);
+    glBindTexture(GL_TEXTURE_2D, dogTextureID);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -98,5 +122,5 @@ void Dog::initTexture(std::string path)
 void Dog::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, dog_texture_id);
+    glBindTexture(GL_TEXTURE_2D, dogTextureID);
 }

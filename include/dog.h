@@ -13,10 +13,12 @@ class Dog
 private:
     Object *dog;
     Shader *shader;
-    GLuint dog_texture_id;
-    int current_frame;
-    int num_frames;
-    std::vector<const char *> obj_paths;
+    GLuint dogTextureID;
+    int currentFrame;
+    int numOfFrames;
+    double previousTime;
+    std::vector<const char *> objectPaths;
+    std::vector<Object*> obj;
 
 
 public:
@@ -26,7 +28,7 @@ public:
     void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos,double current_frame);
     void initTexture(std::string path);
     void walk(double current_frame);
-
+    void initKeyframe();
 
     void bindAllTexture();
 };
