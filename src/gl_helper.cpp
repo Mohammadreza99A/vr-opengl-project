@@ -10,6 +10,7 @@ static double prevScrollYOffset = 0;
 ISoundEngine *soundEngine = createIrrKlangDevice();
 ISound *music;
 bool isSnowing = true;
+float heightScale = 0.1f;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -134,11 +135,11 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     unsigned int nbOfParticles = 20000;
     SnowManager snow_particles_manager(nbOfParticles);
-    Bricks bricks(3, 9);
-    bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
+    Bricks bricks(9, 37);
+    bricks.transform(glm::vec3(2.2, 2.0, -27.9), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.5, 0.5));
 
-    Bricks bricks2(3, 9);
-    bricks2.transform(glm::vec3(3.6, 2.0, -36.1), glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
+    Bricks bricks2(9, 37);
+    bricks2.transform(glm::vec3(4.9, 2.0, -33.1), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
 
     Barrel barrel;
 
@@ -190,9 +191,9 @@ void glHelper::mainLoop(GLFWwindow *window)
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
-        bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        bricks.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
 
-        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
@@ -249,6 +250,21 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         camera.inputHandling('I', 0.15);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         camera.inputHandling('K', 0.15);
+
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) 
+    {
+        if (heightScale > 0.0f) 
+            heightScale -= 0.0005f;
+        else 
+            heightScale = 0.0f;
+    }
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) 
+    {
+        if (heightScale < 1.0f) 
+            heightScale += 0.0005f;
+        else 
+            heightScale = 1.0f;
+    }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         isSnowing = true;
