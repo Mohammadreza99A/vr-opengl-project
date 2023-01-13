@@ -30,6 +30,8 @@ using namespace irrklang;
 #include "bricks.h"
 #include "barrel.h"
 
+#include "dog.h"
+
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 720
