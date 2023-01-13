@@ -2,8 +2,8 @@
 
 Camera camera;
 bool isSunMoving = true;
-GLfloat cameraPosition[3];
-GLfloat cameraDirection[3];
+glm::vec3 cameraPosition;
+glm::vec3 cameraDirection;
 static bool firstLeftMouseButton = true, leftMouseButtonPress = false;
 static double prevMouseXPress = WIN_WIDTH / 2.0f, prevMouseYPress = WIN_HEIGHT / 2.0f;
 static double prevScrollYOffset = 0;
@@ -76,39 +76,56 @@ void glHelper::init(GLFWwindow *window)
 void glHelper::mainLoop(GLFWwindow *window)
 {
     float shininess = 32.0f;
-    float ambient_strength = 0.5;
-    float diffuse_strength = 0.5;
+    float ambientStrength = 0.5;
+    float diffuseStrength = 0.5;
     float specular_strength = 0.5;
     glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
-    glm::vec3 light_pos = glm::vec3(5.0, 20.0, 2.0);
+    glm::vec3 lightPosition = glm::vec3(5.0, 100.0, 2.0);
 
-    Light light(shininess, ambient_strength, diffuse_strength, specular_strength, materialColour);
+    Light light(shininess, ambientStrength, diffuseStrength, specular_strength, materialColour);
 
     Terrain terrain;
+    light.on(terrain.getShader());
+    terrain.init(1280, 1280);
     glm::mat4 terrainModel = glm::mat4(1.0);
     terrainModel = glm::scale(terrainModel, glm::vec3(384.0, 32.0, 384.0));
 
-    light.setLight(terrain.getShader());
-
     Windmill windmill;
-    light.setLight(windmill.getShader());
+    light.on(windmill.getShader());
 
     House house;
-    light.setLight(house.getShader());
+    light.on(house.getShader());
 
     SkyBox skyboxCubemap;
 
     Horse horse(skyboxCubemap.textureID);
+    std::vector<Shader *> horseShaders = horse.getShader();
+    for (int i = 0; i < (int)horseShaders.size(); i++)
+    {
+        light.on(horseShaders[i]);
+    }
 
     Sun sun;
 
-    Dog dog;
-    light.setLight(dog.getShader());
+    unsigned int nbOfParticles = 20000;
+    SnowManager snow_particles_manager(nbOfParticles);
+    snow_particles_manager.set_emiter_boundary(-384, 384, 29, 31, -384, 384);
+    snow_particles_manager.set_life_duration_sec(2, 5);
+    snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
-    GLfloat light_position[3];
-    light_position[0] = light_pos.x;
-    light_position[1] = light_pos.y;
-    light_position[2] = light_pos.z;
+    Bricks bricks(3, 9);
+    light.on(bricks.getShader());
+    bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
+
+    Bricks bricks2(3, 9);
+    light.on(bricks2.getShader());
+    bricks2.transform(glm::vec3(3.6, 2.0, -36.1), glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
+
+    Barrel barrel;
+    light.on(barrel.getShader());
+
+    Dog dog;
+    light.on(dog.getShader());
 
     camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
     camera.init(5.5f, &terrain);
@@ -135,20 +152,6 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
-    unsigned int nbOfParticles = 20000;
-    SnowManager snow_particles_manager(nbOfParticles);
-    Bricks bricks(3, 9);
-    bricks.transform(glm::vec3(-0.91, 2.0, -26.46), glm::radians(115.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.5, 0.5, 0.5));
-
-    Bricks bricks2(3, 9);
-    bricks2.transform(glm::vec3(3.6, 2.0, -36.1), glm::radians(25.f), glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
-
-    Barrel barrel;
-
-    snow_particles_manager.set_emiter_boundary(-384, 384, 29, 31, -384, 384);
-    snow_particles_manager.set_life_duration_sec(2, 5);
-    snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
-
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -157,50 +160,60 @@ void glHelper::mainLoop(GLFWwindow *window)
         camera.getDirection(cameraDirection);
         glfwPollEvents();
         double currentTime = glfwGetTime();
-        snow_particles_manager.set_time(currentTime);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::vec3 delta = light_pos;
+
+        // Light & Sun
+        glm::vec3 delta = lightPosition;
+        const glm::vec3 sunColor = glm::vec3(1.0f, 1.0f, 0.0f);
 
         if (isSunMoving)
         {
-            delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
+            delta = lightPosition + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
+        sun.draw(view, perspective, cameraPosition, lightPosition, delta, sunColor);
 
-        house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
+        // House
+        house.draw(view, perspective, cameraPosition, delta);
 
-        const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
-        sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
+        dog.draw(view, perspective, cameraPosition, delta, currentTime);
 
-        horse.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, glm::vec3(2.0f, 2.0f, 1.0f));
+        // Horse
+        glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
+        horse.draw(view, perspective, cameraPosition, delta, lightColor);
 
+        // Snow
+        snow_particles_manager.set_time(currentTime);
         if (isSnowing)
         {
-            snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
+            snow_particles_manager.draw(view, perspective, cameraPosition, lightPosition);
         }
 
         // 3D  audio positioning
-        vec3df audioPos(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-        vec3df audioDir(-1.0 * cameraDirection[0], -1.0 * cameraDirection[1], -1.0 * cameraDirection[2]);
+        vec3df audioPos(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+        vec3df audioDir(-1.0 * cameraDirection.x, -1.0 * cameraDirection.y, -1.0 * cameraDirection.z);
         soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
-        // draw the terrain
-        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
+        // Terrain
+        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, cameraPosition);
 
-        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        // Barrel
+        barrel.draw(view, perspective, cameraPosition, delta);
 
+        // Windmill
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        dog.draw(view, perspective, glm::make_vec3(cameraPosition), delta, currentTime);
-        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
+        windmill.draw(view, perspective, cameraPosition, delta, degree);
 
-        bricks.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
-
-        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        // Bricks
+        bricks.draw(view, perspective, cameraPosition, delta);
+        bricks2.draw(view, perspective, cameraPosition, delta);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+
+        // Skybox
+        skyboxCubemap.draw(view, perspective, cameraPosition, lightPosition);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);

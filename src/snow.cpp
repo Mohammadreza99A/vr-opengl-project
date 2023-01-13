@@ -109,7 +109,7 @@ void SnowManager::clean()
     delete[] particles_positions;
 }
 
-void SnowManager::draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, GLfloat camera_position[3], GLfloat light_position[3])
+void SnowManager::draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, glm::vec3 &camera_position, glm::vec3 &light_position)
 {
 
     handle_particles();
@@ -126,8 +126,8 @@ void SnowManager::draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, G
     shader->use();
     glBindVertexArray(vao_particles);
 
-    shader->setVector3f("camera_position", glm::make_vec3(camera_position));
-    shader->setVector3f("light_position", glm::make_vec3(light_position));
+    shader->setVector3f("camera_position", camera_position);
+    shader->setVector3f("light_position", light_position);
 
     shader->setMatrix4("view", view_matrix);
     shader->setMatrix4("projection", projection_matrix);

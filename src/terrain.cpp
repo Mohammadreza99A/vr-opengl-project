@@ -104,7 +104,7 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
     glBindVertexArray(_vao);
 
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_position);
+    shader->setVector3f("light.light_pos", light_position);
 
     shader->setMatrix4("M", model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));

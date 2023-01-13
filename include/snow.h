@@ -27,7 +27,7 @@ public:
 
    void clean();
 
-   void draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, GLfloat camera_position[3], GLfloat light_position[3]);
+   void draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, glm::vec3 &camera_position, glm::vec3 &light_position);
 
 protected:
    struct Particle

@@ -15,8 +15,8 @@ public:
     Camera();
     void init(float height, Terrain *terrain);
     void lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up);
-    void getPosition(float position[3]);
-    void getDirection(float direction[3]);
+    void getPosition(glm::vec3  position);
+    void getDirection(glm::vec3 direction);
     void getCenter(float center[3]);
     glm::mat4x4 getMatrix();
     glm::mat4x4 getReflectionMatrix(float height);

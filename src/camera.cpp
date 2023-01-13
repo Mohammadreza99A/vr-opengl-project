@@ -47,18 +47,18 @@ void Camera::lookAt(glm::vec3 eye, glm::vec3 center, glm::vec3 up)
     this->updatePos();
 }
 
-void Camera::getPosition(float position[3])
+void Camera::getPosition(glm::vec3 position)
 {
-    position[0] = eye.x;
-    position[1] = eye.y;
-    position[2] = eye.z;
+    position.x = eye.x;
+    position.y = eye.y;
+    position.z = eye.z;
 }
 
-void Camera::getDirection(float direction[3])
+void Camera::getDirection(glm::vec3 direction)
 {
-    direction[0] = center.x - eye.x;
-    direction[1] = center.y - eye.y;
-    direction[2] = center.z - eye.z;
+    direction.x = center.x - eye.x;
+    direction.y = center.y - eye.y;
+    direction.z = center.z - eye.z;
 }
 
 void Camera::getCenter(float center[3])
