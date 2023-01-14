@@ -90,7 +90,7 @@ void glHelper::init(GLFWwindow *window)
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
-    glGenFramebuffers(1, &depthMapFBO);
+    /*glGenFramebuffers(1, &depthMapFBO);
     // create depth texture
     glGenTextures(1, &depthMap);
     glBindTexture(GL_TEXTURE_2D, depthMap);
@@ -104,8 +104,8 @@ void glHelper::mainLoop(GLFWwindow *window)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    /*float shininess = 32.0f;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
+    float shininess = 32.0f;
     float ambient_strength = 0.5;
     float diffuse_strength = 0.5;
     float specular_strength = 0.5;
@@ -120,16 +120,16 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     light.setLight(terrain.getShader());
 
-    Windmill windmill;
-    light.setLight(windmill.getShader());
+    //Windmill windmill;
+    //light.setLight(windmill.getShader());
 
-    light.setLight(house.getShader());
+   // light.setLight(house.getShader());
 
-    SkyBox skyboxCubemap;
+    //SkyBox skyboxCubemap;
 
-    Horse horse(skyboxCubemap.textureID);
+    //Horse horse(skyboxCubemap.textureID);
 
-    Sun sun;
+    //Sun sun;
 
     GLfloat light_position[3];
     light_position[0] = light_pos.x;
@@ -147,7 +147,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     double prev = 0;
     int deltaFrame = 0;
     // fps function
-    auto fps = [&](double now)
+    /*auto fps = [&](double now)
     {
         double deltaTime = now - prev;
         deltaFrame++;
@@ -189,67 +189,36 @@ void glHelper::mainLoop(GLFWwindow *window)
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
-        /*view = camera.getMatrix();
-        camera.getPosition(cameraPosition);
-        camera.getDirection(cameraDirection);
-        glfwPollEvents();
-        double currentTime = glfwGetTime();
-        snow_particles_manager.set_time(currentTime);
+        glm::mat4 lightProjection, lightView;
+        glm::mat4 lightSpaceMatrix;
+        float near_plane = 1.0f, far_plane = 7.5f;
+        lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+        lightView = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        lightSpaceMatrix = lightProjection * lightView;
+        // render scene from light's point of view
+        shadowShader->use();
+        shadowShader->setMatrix4("lightSpaceMatrix", lightSpaceMatrix);
+        shadowShader->setMatrix4("model", house->getModel());
 
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glm::vec3 delta = light_pos;
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glActiveTexture(GL_TEXTURE0);
+            house->render();
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        if (isSunMoving)
-        {
-            delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
-        }
-
-        house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
-        const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
-        sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
-
-        horse.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, glm::vec3(2.0f, 2.0f, 1.0f));
-
-        if (isSnowing)
-        {
-            snow_particles_manager.draw(view, perspective, cameraPosition, light_position);
-        }
-
-        // 3D  audio positioning
-        vec3df audioPos(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
-        vec3df audioDir(-1.0 * cameraDirection[0], -1.0 * cameraDirection[1], -1.0 * cameraDirection[2]);
-        soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
-
-        // draw the terrain
-        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
-
-        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
-
-        double deltaTime = fps(currentTime);
-        float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
-
-        bricks.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
-
-        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
-
-        glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
-        glDepthFunc(GL_LESS); // set depth function back to default
-
-        fps(currentTime);
-        glfwSwapBuffers(window);*/
-        // input
-        // -----
-        glfwPollEvents();
-
-        // render
-        // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        // reset viewport
+        glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        RenderSceneCB();
+        // render Depth map to quad for visual debugging
+        // ---------------------------------------------
+        shadowLightShader->use();
+        shadowLightShader->setFloat("near_plane", near_plane);
+        shadowLightShader->setFloat("far_plane", far_plane);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, depthMap);
+        house2->render();
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

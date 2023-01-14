@@ -48,6 +48,8 @@ Shader *House::getShader()
 
 void House::render(){
     house->draw();
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 
