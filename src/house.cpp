@@ -1,4 +1,20 @@
 #include "house.h"
+House::House(Shader &shader)
+{
+
+    char path[] = PATH_TO_OBJECTS "/farm_house.obj";
+    house = new Object(path);
+    house->makeObject(shader,false,false);
+    house->model = glm::translate(house->model, glm::vec3(5.0, 5.0, -30.0));
+    house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
+    house->model = glm::scale(house->model, glm::vec3(0.5, 0.5, 0.5));
+
+    // to avoid the current object being polluted
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+
 
 House::House()
 {
@@ -19,10 +35,21 @@ House::House()
     glUseProgram(0);
 }
 
+glm::mat4 House::getModel()
+{
+    return house->model;
+}
+
 Shader *House::getShader()
 {
     return this->shader;
 }
+
+
+void House::render(){
+    house->draw();
+}
+
 
 void House::cleanup()
 {

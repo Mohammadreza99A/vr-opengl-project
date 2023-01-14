@@ -1,4 +1,6 @@
 #include "gl_helper.h"
+#define SHADOW_WIDTH 2048
+#define SHADOW_HEIGHT 2048
 
 Camera camera;
 bool isSunMoving = true;
@@ -11,6 +13,14 @@ ISoundEngine *soundEngine = createIrrKlangDevice();
 ISound *music;
 bool isSnowing = true;
 float heightScale = 0.1f;
+ShadowMapFBO m_shadowMapFBO;
+House *house;
+House *house2;
+Shader *shadowShader;
+Shader *shadowLightShader;
+float near_plane = 1.0f, far_plane = 7.5f;
+unsigned int depthMapFBO;
+unsigned int depthMap;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -72,11 +82,30 @@ void glHelper::init(GLFWwindow *window)
     glEnable(GL_MULTISAMPLE);
 
     glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+
+    /*if (!m_shadowMapFBO.Init(SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT)) {
+            exit(1);
+    }*/
 }
 
 void glHelper::mainLoop(GLFWwindow *window)
 {
-    float shininess = 32.0f;
+    glGenFramebuffers(1, &depthMapFBO);
+    // create depth texture
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // attach depth texture as FBO's depth buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*float shininess = 32.0f;
     float ambient_strength = 0.5;
     float diffuse_strength = 0.5;
     float specular_strength = 0.5;
@@ -94,7 +123,6 @@ void glHelper::mainLoop(GLFWwindow *window)
     Windmill windmill;
     light.setLight(windmill.getShader());
 
-    House house;
     light.setLight(house.getShader());
 
     SkyBox skyboxCubemap;
@@ -146,11 +174,22 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.set_emiter_boundary(-384, 384, 29, 31, -384, 384);
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
+*/
+    shadowShader = new Shader(PATH_TO_SHADERS "/shadowV.glsl", PATH_TO_SHADERS "/shadowF.glsl");
+    
+    house =new House(*shadowShader);
+
+    shadowLightShader = new Shader(PATH_TO_SHADERS "/shadowLightV.glsl", PATH_TO_SHADERS "/shadowLightF.glsl");
+    house2 =new House(*shadowLightShader);
+
+
+    shadowLightShader->use();
+    shadowLightShader->setInteger("depthMap", 0);
 
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
-        view = camera.getMatrix();
+        /*view = camera.getMatrix();
         camera.getPosition(cameraPosition);
         camera.getDirection(cameraDirection);
         glfwPollEvents();
@@ -200,7 +239,19 @@ void glHelper::mainLoop(GLFWwindow *window)
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
+        glfwSwapBuffers(window);*/
+        // input
+        // -----
+        glfwPollEvents();
+
+        // render
+        // ------
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        RenderSceneCB();
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 }
 
@@ -251,18 +302,18 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         camera.inputHandling('K', 0.15);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) 
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        if (heightScale > 0.0f) 
+        if (heightScale > 0.0f)
             heightScale -= 0.0005f;
-        else 
+        else
             heightScale = 0.0f;
     }
-    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) 
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        if (heightScale < 1.0f) 
+        if (heightScale < 1.0f)
             heightScale += 0.0005f;
-        else 
+        else
             heightScale = 1.0f;
     }
 
@@ -334,4 +385,53 @@ void glHelper::cleanup(GLFWwindow *window)
 {
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void glHelper::RenderSceneCB()
+{
+    ShadowMapPass();
+    LightingPass();
+}
+
+void glHelper::ShadowMapPass()
+{
+    //m_shadowMapFBO.BindForWriting();
+
+    //glClear(GL_DEPTH_BUFFER_BIT);
+
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE0);
+
+    shadowShader->use();
+
+    glm::mat4 World = house->getModel();
+    glm::mat4 lightProjection, lightView;
+    glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+    lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+    glm::mat4 WVP = lightProjection * lightView * World;
+    shadowShader->setMatrix4("gWVP", WVP);
+
+    house->render();
+}
+
+void glHelper::LightingPass()
+{
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    shadowLightShader->use();
+
+    shadowLightShader->setFloat("near_plane", near_plane);
+    shadowLightShader->setFloat("far_plane", far_plane);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    house2->render();
 }
