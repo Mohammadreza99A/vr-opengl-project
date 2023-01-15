@@ -37,9 +37,9 @@ int main()
         return EXIT_FAILURE;
     }
 
-    glHelper::printWelcomeMessage();
-
     glHelper::printContextInfo();
+
+    glHelper::printWelcomeMessage();
 
     glHelper::initCallbacks(window);
 
