@@ -49,9 +49,9 @@ void glHelper::printContextInfo()
 void glHelper::initCallbacks(GLFWwindow *window)
 {
     // Keyboard Callback
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(window, keyCallback);
     // Framebuffer resize callback
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
     // Ensure we can capture the keyboard keys and mouse buttons
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetInputMode(window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
@@ -123,12 +123,21 @@ void glHelper::mainLoop(GLFWwindow *window)
 
     Sun sun;
 
+    // Snow
     unsigned int nbOfParticles = 20000;
-    SnowManager snow_particles_manager(nbOfParticles);
-    snow_particles_manager.set_emiter_boundary(-384, 384, 29, 31, -384, 384);
-    snow_particles_manager.set_life_duration_sec(2, 5);
-    snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
+    Snow snowParticles(nbOfParticles);
 
+    glm::vec3 minCoords = glm::vec3(-384, 29, -384);
+    glm::vec3 maxCoords = glm::vec3(384, 31, 384);
+    snowParticles.setEmiterBoundary(minCoords, maxCoords);
+
+    snowParticles.setLifeDurationSec(2, 5);
+
+    glm::vec3 initialVelocity = glm::vec3(0, -30.0f / 5.0f, 0);
+    glm::vec3 variation = glm::vec3(0, 1.0f, 0);
+    snowParticles.setInitialVelocity(initialVelocity, variation);
+    
+    // Bricks
     Bricks bricks(9, 37);
     light.on(bricks.getShader());
     bricks.transform(glm::vec3(2.2, 2.0, -27.9), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.5, 0.5));
@@ -137,12 +146,15 @@ void glHelper::mainLoop(GLFWwindow *window)
     light.on(bricks2.getShader());
     bricks2.transform(glm::vec3(4.9, 2.0, -33.1), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
 
+    // Barrel
     Barrel barrel;
     light.on(barrel.getShader());
 
+    // Dog
     Dog dog;
     light.on(dog.getShader());
 
+    // Camera
     camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
     camera.init(5.5f, &terrain);
     camera.setSpeed(5.0f);
@@ -151,9 +163,9 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::mat4 view = camera.getMatrix();
     glm::mat4 perspective = glm::perspective(1.0f, (float)WIN_WIDTH / (float)WIN_HEIGHT, 0.01f, 1000.0f);
 
+    // Frame per second function
     double prev = 0;
     int deltaFrame = 0;
-    // fps function
     auto fps = [&](double now)
     {
         double deltaTime = now - prev;
@@ -167,6 +179,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
+    // Main loop
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -175,24 +188,22 @@ void glHelper::mainLoop(GLFWwindow *window)
         camera.getPosition(cameraPosition);
         camera.getDirection(cameraDirection);
         double currentTime = glfwGetTime();
-        static float prevTime = 0;
-        snow_particles_manager.set_time(currentTime);
 
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Light & Sun
-        glm::vec3 delta = lightPosition;
+        glm::vec3 lightMovement = lightPosition;
         const glm::vec3 sunColor = glm::vec3(1.0f, 1.0f, 0.0f);
 
         if (isSunMoving)
         {
-            delta = lightPosition + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
+            lightMovement = lightPosition + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
-
-        sun.draw(view, perspective, cameraPosition, lightPosition, delta, sunColor);
+        sun.draw(view, perspective, cameraPosition, lightPosition, lightMovement, sunColor);
 
         // Trees
+        static float prevTime = 0;
         for (size_t i = 0; i < treesPos.size(); i++)
         {
             Transform tree_transf;
@@ -205,19 +216,20 @@ void glHelper::mainLoop(GLFWwindow *window)
         }
 
         // House
-        house.draw(view, perspective, cameraPosition, delta);
+        house.draw(view, perspective, cameraPosition, lightMovement);
 
-        dog.draw(view, perspective, cameraPosition, delta, currentTime);
+        // Dog
+        dog.draw(view, perspective, cameraPosition, lightMovement, currentTime);
 
         // Horse
         glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
-        horse.draw(view, perspective, cameraPosition, delta, lightColor);
+        horse.draw(view, perspective, cameraPosition, lightMovement, lightColor);
 
         // Snow
-        snow_particles_manager.set_time(currentTime);
+        snowParticles.setTime(currentTime);
         if (isSnowing)
         {
-            snow_particles_manager.draw(view, perspective, cameraPosition, lightPosition);
+            snowParticles.draw(view, perspective, cameraPosition, lightPosition);
         }
 
         // 3D  audio positioning
@@ -226,19 +238,19 @@ void glHelper::mainLoop(GLFWwindow *window)
         soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
         // Terrain
-        terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, cameraPosition);
+        terrain.draw(terrainModel, camera.getMatrix(), perspective, lightMovement, cameraPosition);
 
         // Barrel
-        barrel.draw(view, perspective, cameraPosition, delta);
+        barrel.draw(view, perspective, cameraPosition, lightMovement);
 
         // Windmill
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
-        windmill.draw(view, perspective, cameraPosition, delta, degree);
+        windmill.draw(view, perspective, cameraPosition, lightMovement, degree);
 
         // Bricks
-        bricks.draw(view, perspective, cameraPosition, heightScale, delta);
-        bricks2.draw(view, perspective, cameraPosition, heightScale, delta);
+        bricks.draw(view, perspective, cameraPosition, heightScale, lightMovement);
+        bricks2.draw(view, perspective, cameraPosition, heightScale, lightMovement);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
 
@@ -266,17 +278,17 @@ void glHelper::fillTreesPos()
     treesPos.push_back(std::pair<double, double>(25.0, -50.0));
 }
 
-void glHelper::error_callback(int error, const char *description)
+void glHelper::errorCallback(int error, const char *description)
 {
     std::cerr << description << std::endl;
 }
 
-void glHelper::framebuffer_size_callback(GLFWwindow *window, int width, int height)
+void glHelper::framebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+void glHelper::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     // Close window if ESCAPE key is pressed
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)

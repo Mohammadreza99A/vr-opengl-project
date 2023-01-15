@@ -1,21 +1,21 @@
 #include "snow.h"
 
-SnowManager::SnowManager(uint nb_particles)
+Snow::Snow(uint nbOfParticles)
 {
     shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl",NULL);
 
+    srand(time(0));
+
     _pid = shader->ID;
 
-    this->nb_particles = nb_particles;
-    life_sec_min = 1;
-    life_sec_max = 2;
+    this->nbOfParticles = nbOfParticles;
+    lifeSecMin = 1;
+    lifeSecMax = 2;
 
-    vao_particles = 0;
+    vaoParticles = 0;
 
-    // wind_func = SnowManager::default_wind;
-
-    glGenVertexArrays(1, &vao_particles);
-    glBindVertexArray(vao_particles);
+    glGenVertexArrays(1, &vaoParticles);
+    glBindVertexArray(vaoParticles);
 
     // particle is just a square
     GLfloat vpoint[] = {
@@ -29,10 +29,10 @@ SnowManager::SnowManager(uint nb_particles)
     glBindBuffer(GL_ARRAY_BUFFER, _vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vpoint), vpoint, GL_STATIC_DRAW);
 
-    GLuint vpoint_id = glGetAttribLocation(_pid, "position");
-    glEnableVertexAttribArray(vpoint_id);
-    glVertexAttribPointer(vpoint_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-    glVertexAttribDivisor(vpoint_id, 0);
+    GLuint vpointID = glGetAttribLocation(_pid, "position");
+    glEnableVertexAttribArray(vpointID);
+    glVertexAttribPointer(vpointID, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribDivisor(vpointID, 0);
 
     // texture positions will allow the fragemnt shader to draw the particle
     const GLfloat vtexcoord[] = {
@@ -42,185 +42,184 @@ SnowManager::SnowManager(uint nb_particles)
         1.0f, 0.0f, // 3
     };
 
-    glGenBuffers(1, &_vbo_tex);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_tex);
+    glGenBuffers(1, &_vboTex);
+    glBindBuffer(GL_ARRAY_BUFFER, _vboTex);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vtexcoord), vtexcoord, GL_STATIC_DRAW);
 
-    GLuint vtexcoord_id = glGetAttribLocation(_pid, "uv");
-    glEnableVertexAttribArray(vtexcoord_id);
-    glVertexAttribPointer(vtexcoord_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glVertexAttribDivisor(vtexcoord_id, 0);
+    GLuint vtexcoordID = glGetAttribLocation(_pid, "uv");
+    glEnableVertexAttribArray(vtexcoordID);
+    glVertexAttribPointer(vtexcoordID, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribDivisor(vtexcoordID, 0);
 
-    glGenBuffers(1, &_vbo_points_pos);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_points_pos);
+    glGenBuffers(1, &_vboPointsPos);
+    glBindBuffer(GL_ARRAY_BUFFER, _vboPointsPos);
 
-    particles_positions = new GLfloat[3 * nb_particles];
+    particlesPositions = new GLfloat[3 * nbOfParticles];
 
-    for (size_t i = 0; i < nb_particles; i++)
+    for (size_t i = 0; i < nbOfParticles; i++)
     {
         Particle part;
-        part.position = &(particles_positions[i * 3]);
-        part.life_remaining = 0;
+        part.position = &(particlesPositions[i * 3]);
+        part.lifeRemaining = 0;
         part.age = 0;
         part.speed = glm::vec3(0.0f);
-        lst_particles.push_back(part);
+        particlesVector.push_back(part);
     }
 
-    glBufferData(GL_ARRAY_BUFFER, nb_particles * 3 * sizeof(GLfloat), particles_positions, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, nbOfParticles * 3 * sizeof(GLfloat), particlesPositions, GL_DYNAMIC_DRAW);
 
     // contains 3d position of the particle
-    GLuint pos_id = glGetAttribLocation(_pid, "pos_point");
+    GLuint posID = glGetAttribLocation(_pid, "pos_point");
 
-    glEnableVertexAttribArray(pos_id);
-    glVertexAttribPointer(pos_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(posID);
+    glVertexAttribPointer(posID, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    glVertexAttribDivisor(pos_id, 1);
+    glVertexAttribDivisor(posID, 1);
 
     // particle life buffer
-    glGenBuffers(1, &_vbo_points_life);
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_points_life);
+    glGenBuffers(1, &_vboPointsLife);
+    glBindBuffer(GL_ARRAY_BUFFER, _vboPointsLife);
 
-    particles_life = new GLfloat[nb_particles * 2];
+    particlesLife = new GLfloat[nbOfParticles * 2];
 
-    for (size_t i = 0; i < nb_particles; i++)
+    for (size_t i = 0; i < nbOfParticles; i++)
     {
-        particles_life[i * 2] = 0.0f;     // life remaining of the particle
-        particles_life[i * 2 + 1] = 0.0f; // age of the particle
-        lst_particles[i].life_remaining = &(particles_life[i * 2]);
-        lst_particles[i].age = &(particles_life[i * 2 + 1]);
+        particlesLife[i * 2] = 0.0f;     // life remaining of the particle
+        particlesLife[i * 2 + 1] = 0.0f; // age of the particle
+        particlesVector[i].lifeRemaining = &(particlesLife[i * 2]);
+        particlesVector[i].age = &(particlesLife[i * 2 + 1]);
     }
 
-    glBufferData(GL_ARRAY_BUFFER, nb_particles * 2 * sizeof(GLfloat), particles_life, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, nbOfParticles * 2 * sizeof(GLfloat), particlesLife, GL_DYNAMIC_DRAW);
 
-    GLuint age_id = glGetAttribLocation(_pid, "life_age");
+    GLuint ageID = glGetAttribLocation(_pid, "life_age");
 
-    glEnableVertexAttribArray(age_id);
-    glVertexAttribPointer(age_id, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray(ageID);
+    glVertexAttribPointer(ageID, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
-    glVertexAttribDivisor(age_id, 1);
+    glVertexAttribDivisor(ageID, 1);
 
     glBindVertexArray(0);
 }
 
-void SnowManager::clean()
+void Snow::clean()
 {
-    delete[] particles_positions;
+    delete[] particlesPositions;
 }
 
-void SnowManager::draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, glm::vec3 &camera_position, glm::vec3 &light_position)
+void Snow::draw(glm::mat4x4 viewMatrix, glm::mat4x4 projectionMatrix, glm::vec3 &cameraPosition, glm::vec3 &lightPosition)
 {
 
-    handle_particles();
+    handleParticles();
 
     // sends the buffer to the gpu again
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_points_pos);
-    glBufferData(GL_ARRAY_BUFFER, nb_particles * 3 * sizeof(GLfloat), particles_positions, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, _vboPointsPos);
+    glBufferData(GL_ARRAY_BUFFER, nbOfParticles * 3 * sizeof(GLfloat), particlesPositions, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_points_life);
-    glBufferData(GL_ARRAY_BUFFER, nb_particles * 2 * sizeof(GLfloat), particles_life, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, _vboPointsLife);
+    glBufferData(GL_ARRAY_BUFFER, nbOfParticles * 2 * sizeof(GLfloat), particlesLife, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     shader->use();
-    glBindVertexArray(vao_particles);
+    glBindVertexArray(vaoParticles);
 
-    shader->setVector3f("camera_position", camera_position);
-    shader->setVector3f("light_position", light_position);
+    shader->setVector3f("camera_position", cameraPosition);
+    shader->setVector3f("light_position", lightPosition);
 
-    shader->setMatrix4("view", view_matrix);
-    shader->setMatrix4("projection", projection_matrix);
+    shader->setMatrix4("view", viewMatrix);
+    shader->setMatrix4("projection", projectionMatrix);
 
     glDisable(GL_CULL_FACE);
 
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nb_particles);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbOfParticles);
 
     glEnable(GL_CULL_FACE);
     glBindVertexArray(0);
     glUseProgram(0);
 }
 
-void SnowManager::set_initial_velocity(float init_vel_x, float init_vel_y, float init_vel_z, float variation_x, float variation_y, float variation_z)
-{
-    this->velocity.x = init_vel_x;
-    this->velocity.y = init_vel_y;
-    this->velocity.z = init_vel_z;
+void Snow::setInitialVelocity(glm::vec3 initialVelocity , glm::vec3 variation){
+    this->velocity.x = initialVelocity.x;
+    this->velocity.y = initialVelocity.y;
+    this->velocity.z = initialVelocity.z;
 
-    for (size_t i = 0; i < nb_particles; i++)
+    for (size_t i = 0; i < nbOfParticles; i++)
     {
-        float rand_val = (rand() % 1000) / 1000.0f;
-        lst_particles[i].speed.x = mix(init_vel_x - variation_x, init_vel_x + variation_x, rand_val);
-        rand_val = (rand() % 1000) / 1000.0f;
-        lst_particles[i].speed.y = mix(init_vel_y - variation_y, init_vel_y + variation_y, rand_val);
-        rand_val = (rand() % 1000) / 1000.0f;
-        lst_particles[i].speed.z = mix(init_vel_z - variation_z, init_vel_z + variation_z, rand_val);
+        float randVal = (rand() % 1000) / 1000.0f;
+        particlesVector[i].speed.x = mix(initialVelocity.x - variation.x, initialVelocity.x + variation.x, randVal);
+        randVal = (rand() % 1000) / 1000.0f;
+        particlesVector[i].speed.y = mix(initialVelocity.y - variation.y, initialVelocity.y + variation.y, randVal);
+        randVal = (rand() % 1000) / 1000.0f;
+        particlesVector[i].speed.z = mix(initialVelocity.z - variation.z, initialVelocity.z + variation.z, randVal);
     }
 }
 
-void SnowManager::set_emiter_boundary(GLfloat minx, GLfloat maxx, GLfloat miny, GLfloat maxy, GLfloat minz, GLfloat maxz)
+void Snow::setEmiterBoundary(glm::vec3 minCoords, glm::vec3 maxCoords)
 {
-    emiter_boudary_min_x = minx;
-    emiter_boudary_max_x = maxx;
-    emiter_boudary_min_y = miny;
-    emiter_boudary_max_y = maxy;
-    emiter_boudary_min_z = minz;
-    emiter_boudary_max_z = maxz;
+    emiterBoudaryMin.x = minCoords.x;
+    emiterBoudaryMax.x = maxCoords.x;
+    emiterBoudaryMin.y = minCoords.y;
+    emiterBoudaryMax.y = maxCoords.y;
+    emiterBoudaryMin.z = minCoords.z;
+    emiterBoudaryMax.z = maxCoords.z;
 }
 
-void SnowManager::set_time(float time)
+void Snow::setTime(float time)
 {
-    this->current_time = time;
+    this->currentTime = time;
 }
 
-void SnowManager::set_life_duration_sec(float life_sec_min, float life_sec_max)
+void Snow::setLifeDurationSec(float lifeSecMin, float lifeSecMax)
 {
-    this->life_sec_min = life_sec_min;
-    this->life_sec_max = life_sec_max;
+    this->lifeSecMin = lifeSecMin;
+    this->lifeSecMax = lifeSecMax;
 }
 
-void SnowManager::handle_particles()
+void Snow::handleParticles()
 {
-    float time_diff = current_time - prev_time;
-    for (size_t i = 0; i < nb_particles; i++)
+    float timeDiff = currentTime - prevTime;
+    for (size_t i = 0; i < nbOfParticles; i++)
     {
 
-        if (*lst_particles[i].life_remaining <= 0)
+        if (*particlesVector[i].lifeRemaining <= 0)
         { // create new particle
-            float rand_val = (rand() % 1000) / 1000.0f;
-            lst_particles[i].position[0] = mix(emiter_boudary_min_x, emiter_boudary_max_x, rand_val);
-            rand_val = (rand() % 1000) / 1000.0f;
-            lst_particles[i].position[1] = mix(emiter_boudary_min_y, emiter_boudary_max_y, rand_val);
-            rand_val = (rand() % 1000) / 1000.0f;
-            lst_particles[i].position[2] = mix(emiter_boudary_min_z, emiter_boudary_max_z, rand_val);
-            rand_val = (rand() % 1000) / 1000.0f;
-            *lst_particles[i].life_remaining = mix(life_sec_min, life_sec_max, rand_val);
-            *lst_particles[i].age = 0.0f;
+            float randVal = (rand() % 1000) / 1000.0f;
+            particlesVector[i].position[0] = mix(emiterBoudaryMin.x, emiterBoudaryMax.x, randVal);
+            randVal = (rand() % 1000) / 1000.0f;
+            particlesVector[i].position[1] = mix(emiterBoudaryMin.y, emiterBoudaryMax.y, randVal);
+            randVal = (rand() % 1000) / 1000.0f;
+            particlesVector[i].position[2] = mix(emiterBoudaryMin.z, emiterBoudaryMax.z, randVal);
+            randVal = (rand() % 1000) / 1000.0f;
+            *particlesVector[i].lifeRemaining = mix(lifeSecMin, lifeSecMax, randVal);
+            *particlesVector[i].age = 0.0f;
         }
         else
         { // update particle
             float wind[3];
-            wind_func(lst_particles[i].position, wind, this->current_time);
-            lst_particles[i].position[0] += time_diff * (lst_particles[i].speed.x + wind[0]);
-            lst_particles[i].position[1] += time_diff * (lst_particles[i].speed.y + wind[1]);
-            lst_particles[i].position[2] += time_diff * (lst_particles[i].speed.z + wind[2]);
-            *lst_particles[i].life_remaining -= time_diff;
-            *lst_particles[i].age += time_diff;
+            windFunc(particlesVector[i].position, wind, this->currentTime);
+            particlesVector[i].position[0] += timeDiff * (particlesVector[i].speed.x + wind[0]);
+            particlesVector[i].position[1] += timeDiff * (particlesVector[i].speed.y + wind[1]);
+            particlesVector[i].position[2] += timeDiff * (particlesVector[i].speed.z + wind[2]);
+            *particlesVector[i].lifeRemaining -= timeDiff;
+            *particlesVector[i].age += timeDiff;
         }
     }
-    prev_time = current_time;
+    prevTime = currentTime;
 }
-float SnowManager::mix(float min, float max, float ratio)
+float Snow::mix(float min, float max, float ratio)
 {
     return min * (1.0f - ratio) + max * ratio;
 }
 
-void SnowManager::default_wind(float[3], float ret[3], float)
+void Snow::defaultWind(float[3], float ret[3], float)
 {
     ret[0] = 0;
     ret[1] = 0;
     ret[2] = 0;
 }
 
-void SnowManager::wind_func(float pos[3], float ret[3], float time)
+void Snow::windFunc(float pos[3], float ret[3], float time)
 {
     ret[0] = (sin((pos[1] + pos[2] + time) / 2)) * 2;
     ret[1] = (cos((pos[0] + pos[2] + time) / 2)) * 2;
