@@ -2,7 +2,7 @@
 
 Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, sub_y)
 {
-    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/normalF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/dispF.glsl");
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
@@ -10,8 +10,9 @@ Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, su
     // load textures
     // -------------
 
-    diffuseMap=initTexture(PATH_TO_TEXTURE "/brick/brick.jpg");
-    normalMap=initTexture(PATH_TO_TEXTURE "/brick/brick_normal.jpg");
+    diffuseMap=initTexture(PATH_TO_TEXTURE "/brick/bricks2.jpg");
+    normalMap=initTexture(PATH_TO_TEXTURE "/brick/bricks2_normal.jpg");
+    heightMap=initTexture(PATH_TO_TEXTURE "/brick/bricks2_disp.jpg");
 
     init();
 
@@ -22,6 +23,7 @@ Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, su
     shader->use();
     shader->setInteger("diffuseMap", 0);
     shader->setInteger("normalMap", 1);
+    shader->setInteger("depthMap", 2);
 
     shader->setFloat("shininess", 68.0f);
 
@@ -127,7 +129,7 @@ void Bricks::fill_buffers()
     glVertexAttribPointer(tangent_id, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 }
 
-void Bricks::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos)
+void Bricks::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, float heightScale, const glm::vec3 &light_pos)
 {
     glUseProgram(_pid);
     glBindVertexArray(_vao);
@@ -137,6 +139,7 @@ void Bricks::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm:
     shader->setMatrix4("model", model);
     shader->setVector3f("viewPos", camera_position);
     shader->setVector3f("light.light_pos", light_pos);
+    shader->setFloat("heightScale", heightScale); // adjust with Q and E keys
     bindAllTexture();
     glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_INT, 0);
     glUseProgram(0);
@@ -164,8 +167,9 @@ GLuint Bricks::initTexture(char const *path)
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -187,6 +191,8 @@ void Bricks::bindAllTexture()
     glBindTexture(GL_TEXTURE_2D, diffuseMap);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, normalMap);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, heightMap);
 }
 
 
@@ -195,6 +201,7 @@ void Bricks::cleanup()
     shader->cleanup();
     glDeleteTextures(1, &diffuseMap);
     glDeleteTextures(1, &normalMap);
+    glDeleteTextures(1, &heightMap);
 }
 
 void Bricks::generate_bricks()
@@ -207,7 +214,7 @@ void Bricks::generate_bricks()
             // makes that the relatives go from -1 to 1
             GLfloat relative_x = (float(i) / (sub_x - 1))*2  - 1;
             // rel_z not y as y is up
-            GLfloat relative_z = (float(j) / (sub_y - 1))*8  - 1;
+            GLfloat relative_z = (float(j) / (sub_y - 1)) *10 - 1;
 
             unsigned int cur_pos = (j * sub_x + i) * 3;
 
