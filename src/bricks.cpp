@@ -2,7 +2,7 @@
 
 Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, sub_y)
 {
-    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/dispF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/dispF.glsl", NULL);
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);

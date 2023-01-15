@@ -6,7 +6,7 @@ Horse::Horse(GLuint skyboxID)
     float scale=8.0;
     // compile the shaders.
     float x=0.0,y=1.5,z=-60;
-    shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl");
+    shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl", NULL);
 
 
     char path1[] = PATH_TO_OBJECTS "/horse.obj";
@@ -16,7 +16,7 @@ Horse::Horse(GLuint skyboxID)
     horse->model = glm::scale(horse->model, glm::vec3(scale,scale, scale));
     
 
-    shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl", NULL);
 
     char path2[] = PATH_TO_OBJECTS "/base.obj";
     base = new Object(path2);

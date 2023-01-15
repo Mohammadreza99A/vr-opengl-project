@@ -2,7 +2,7 @@
 
 SnowManager::SnowManager(uint nb_particles)
 {
-    shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl",NULL);
 
     _pid = shader->ID;
 

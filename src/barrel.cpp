@@ -2,7 +2,7 @@
 
 Barrel::Barrel()
 {
-    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/normalF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/normalF.glsl", NULL);
 
     char path[] = PATH_TO_OBJECTS "/barrel.obj";
     barrel = new Object(path);

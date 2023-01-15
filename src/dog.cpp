@@ -2,7 +2,7 @@
 
 Dog::Dog()
 {
-    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl", NULL);
     shaderNormal=  new Shader(PATH_TO_SHADERS "/dogNormalV.glsl", PATH_TO_SHADERS "/dogNormalF.glsl", PATH_TO_SHADERS "/dogNormalG.glsl");
     previousTime = 0;
 

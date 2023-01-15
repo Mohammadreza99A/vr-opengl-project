@@ -21,12 +21,14 @@ void Tree::init()
 
     this->trunk_shader = new Shader(
         PATH_TO_SHADERS "/trunkV.glsl",
-        PATH_TO_SHADERS "/trunkF.glsl");
+        PATH_TO_SHADERS "/trunkF.glsl",
+        NULL);
     this->_pid_trunk = this->trunk_shader->ID;
 
     this->ileaves_shader = new Shader(
         PATH_TO_SHADERS "/leavesIndividualV.glsl",
-        PATH_TO_SHADERS "/leavesIndividualF.glsl");
+        PATH_TO_SHADERS "/leavesIndividualF.glsl",
+        NULL);
     this->_pid_ileaves = this->ileaves_shader->ID;
 
     wind_offset[0] = wind_offset[1] = 0.0f;

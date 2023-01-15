@@ -22,9 +22,7 @@ public:
     GLuint ID;
 
     Shader(const char *vertexPath, const char *fragmentPath, const char *geometryPath);
-    Shader(const char *vertexPath, const char *fragmentPath);
     Shader(std::string vShaderCode, std::string fShaderCode, std::string gShaderCode);
-    Shader(std::string vShaderCode, std::string fShaderCode);
     void use();
     void setInteger(const GLchar *name, GLint value);
     void setFloat(const GLchar *name, GLfloat value);

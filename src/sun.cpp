@@ -3,7 +3,7 @@
 Sun::Sun()
 {
 
-    shader_sun = new Shader(PATH_TO_SHADERS "/sunV.glsl", PATH_TO_SHADERS "/sunF.glsl");
+    shader_sun = new Shader(PATH_TO_SHADERS "/sunV.glsl", PATH_TO_SHADERS "/sunF.glsl",NULL);
 
     char pathToSun[] = PATH_TO_OBJECTS "/sun.obj";
     sun = new Object(pathToSun);
