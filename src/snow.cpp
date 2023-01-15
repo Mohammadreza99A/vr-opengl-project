@@ -4,8 +4,6 @@ SnowManager::SnowManager(uint nb_particles)
 {
     shader = new Shader(PATH_TO_SHADERS "/snowV.glsl", PATH_TO_SHADERS "/snowF.glsl");
 
-    srand(time(0));
-
     _pid = shader->ID;
 
     this->nb_particles = nb_particles;
