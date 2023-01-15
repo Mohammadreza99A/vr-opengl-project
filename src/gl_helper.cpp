@@ -10,8 +10,8 @@ static double prevScrollYOffset = 0;
 ISoundEngine *soundEngine = createIrrKlangDevice();
 ISound *music;
 bool isSnowing = true;
-Transform tree_transf;
-Tree *tree;
+std::vector<Tree *> trees;
+std::vector<std::pair<double, double>> treesPos;
 
 GLFWwindow *glHelper::initGlfwWindow()
 {
@@ -28,8 +28,13 @@ void glHelper::printWelcomeMessage()
     std::cout << "Commands for camera actions:" << std::endl;
     std::cout << "\t - for movement, use arrow keys" << std::endl;
     std::cout << "\t - for rotation, use IJKL keys" << std::endl;
-    std::cout << "\t - for rotation you can also use the mouse by hold left mouse key and moving it" << std::endl;
-    std::cout << "\t - scroll wheel (vertical) of the mouse can be used to move forward and backward" << std::endl;
+    std::cout << "To play 3D audio, press Espace key. Having the right drivers matter" << std::endl;
+    std::cout << "Commands for snow particles:" << std::endl;
+    std::cout << "\t - to activate snow particles, use W key" << std::endl;
+    std::cout << "\t - to deactivate snow particles, use S key" << std::endl;
+    std::cout << "Commands for sun movement:" << std::endl;
+    std::cout << "\t - to activate sun movement, use Y key" << std::endl;
+    std::cout << "\t - to deactivate sun movement, use N key" << std::endl;
 }
 
 void glHelper::printContextInfo()
@@ -44,10 +49,6 @@ void glHelper::initCallbacks(GLFWwindow *window)
 {
     // Keyboard Callback
     glfwSetKeyCallback(window, key_callback);
-    // Mouse actions callback
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, mouse_cursor_callback);
-    glfwSetScrollCallback(window, mouse_scroll_callback);
     // Framebuffer resize callback
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     // Ensure we can capture the keyboard keys and mouse buttons
@@ -57,6 +58,8 @@ void glHelper::initCallbacks(GLFWwindow *window)
 
 void glHelper::init(GLFWwindow *window)
 {
+    srand(time(0));
+
     ilInit();
 
     glClearColor(0.3f, 0.5f, 0.5f, 1.0f);
@@ -73,6 +76,16 @@ void glHelper::init(GLFWwindow *window)
     glEnable(GL_MULTISAMPLE);
 
     glViewport(0, 0, WIN_WIDTH, WIN_HEIGHT);
+
+    fillTreesPos();
+
+    for (size_t i = 0; i < treesPos.size(); i++)
+    {
+        Tree *tree = new Tree;
+        tree->init();
+        tree->load();
+        trees.push_back(tree);
+    }
 }
 
 void glHelper::mainLoop(GLFWwindow *window)
@@ -147,19 +160,13 @@ void glHelper::mainLoop(GLFWwindow *window)
     snow_particles_manager.set_life_duration_sec(2, 5);
     snow_particles_manager.set_initial_velocity(0, -30.0f / 5.0f, 0, 0, 1.0f, 0); // 30/5 unit per second, with +- 1.0
 
-    tree = new Tree;
-    tree->init();
-    tree->load();
-    tree_transf.translate(30.0f, 0.5f, -20.0f);
-    tree_transf.scale(5.0f, 5.0f, 5.0f);
-
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
+        glfwPollEvents();
         view = camera.getMatrix();
         camera.getPosition(cameraPosition);
         camera.getDirection(cameraDirection);
-        glfwPollEvents();
         double currentTime = glfwGetTime();
         static float prevTime = 0;
         snow_particles_manager.set_time(currentTime);
@@ -173,10 +180,16 @@ void glHelper::mainLoop(GLFWwindow *window)
             delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
 
-        tree->setMVP(tree_transf.get_matrix(), view, perspective);
-        tree->setLightPos(glm::value_ptr(light_pos));
-        tree->move_leaves(currentTime - prevTime);
-        tree->draw();
+        for (size_t i = 0; i < treesPos.size(); i++)
+        {
+            Transform tree_transf;
+            tree_transf.translate(treesPos[i].first, 0.5, treesPos[i].second);
+            tree_transf.scale(3.0f, 3.0f, 3.0f);
+            trees[i]->setMVP(tree_transf.get_matrix(), view, perspective);
+            trees[i]->setLightPos(glm::value_ptr(light_pos));
+            trees[i]->move_leaves(currentTime - prevTime);
+            trees[i]->draw();
+        }
 
         house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
@@ -217,6 +230,20 @@ void glHelper::mainLoop(GLFWwindow *window)
     }
 }
 
+void glHelper::fillTreesPos()
+{
+    treesPos.push_back(std::pair<double, double>(30.0, -20.0));
+    treesPos.push_back(std::pair<double, double>(25.0, -20.0));
+    treesPos.push_back(std::pair<double, double>(-50.0, 15.0));
+    treesPos.push_back(std::pair<double, double>(-15.0, 10.0));
+    treesPos.push_back(std::pair<double, double>(10.0, -80.0));
+    treesPos.push_back(std::pair<double, double>(-5.0, -5.0));
+    treesPos.push_back(std::pair<double, double>(10.0, -70.0));
+    treesPos.push_back(std::pair<double, double>(-15.0, -5.0));
+    treesPos.push_back(std::pair<double, double>(35.0, -35.0));
+    treesPos.push_back(std::pair<double, double>(25.0, -50.0));
+}
+
 void glHelper::error_callback(int error, const char *description)
 {
     std::cerr << description << std::endl;
@@ -246,23 +273,23 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
     // Camera input handling
     // Movement with Arrow keys
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        camera.inputHandling('W', 1.0);
+        camera.inputHandling('W', 0.5);
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        camera.inputHandling('S', 1.0);
+        camera.inputHandling('S', 0.5);
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-        camera.inputHandling('A', 1.0);
+        camera.inputHandling('A', 0.5);
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-        camera.inputHandling('D', 1.0);
+        camera.inputHandling('D', 0.5);
 
     // Rotation with IJKL keys
     if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
-        camera.inputHandling('L', 0.15);
+        camera.inputHandling('L', 0.1);
     if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
-        camera.inputHandling('J', 0.15);
+        camera.inputHandling('J', 0.1);
     if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
-        camera.inputHandling('I', 0.15);
+        camera.inputHandling('I', 0.1);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
-        camera.inputHandling('K', 0.15);
+        camera.inputHandling('K', 0.1);
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         isSnowing = true;
@@ -273,59 +300,6 @@ void glHelper::key_callback(GLFWwindow *window, int key, int scancode, int actio
         isSunMoving = true;
     if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS)
         isSunMoving = false;
-}
-
-void glHelper::mouse_button_callback(GLFWwindow *window, int button,
-                                     int action, int mods)
-{
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-        if (!leftMouseButtonPress)
-        {
-            leftMouseButtonPress = true;
-            firstLeftMouseButton = true;
-        }
-
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-        if (leftMouseButtonPress)
-        {
-            leftMouseButtonPress = false;
-            firstLeftMouseButton = true;
-        }
-}
-
-void glHelper::mouse_cursor_callback(GLFWwindow *window, double xposIn, double yposIn)
-{
-    if (!leftMouseButtonPress)
-        return;
-
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstLeftMouseButton)
-    {
-        prevMouseXPress = xpos;
-        prevMouseYPress = ypos;
-        firstLeftMouseButton = false;
-    }
-
-    float xoffset = xpos - prevMouseXPress;
-    float yoffset = prevMouseYPress - ypos; // reversed since y-coordinates go from bottom to top
-
-    prevMouseXPress = xpos;
-    prevMouseYPress = ypos;
-
-    // camera.processMouseMovement(xoffset, yoffset);
-}
-
-void glHelper::mouse_scroll_callback(GLFWwindow *window,
-                                     double xoffset, double yoffset)
-{
-    prevScrollYOffset += yoffset;
-
-    if (prevScrollYOffset + yoffset > prevScrollYOffset)
-        camera.inputHandling('W', 0.5);
-    if (prevScrollYOffset + yoffset < prevScrollYOffset)
-        camera.inputHandling('S', 0.5);
 }
 
 void glHelper::cleanup(GLFWwindow *window)

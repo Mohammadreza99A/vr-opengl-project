@@ -17,8 +17,6 @@ Tree::~Tree()
 
 void Tree::init()
 {
-    srand(time(0));
-
     enabled = true;
 
     this->trunk_shader = new Shader(
@@ -73,7 +71,7 @@ void Tree::load()
 
         glm::mat4 *matrices_array = new glm::mat4x4[mat_vector_trunks.size()];
 
-        printf("will draw %lu trunks\n", mat_vector_trunks.size());
+        // printf("will draw %lu trunks\n", mat_vector_trunks.size());
 
         for (size_t i = 0; i < mat_vector_trunks.size(); i++)
         {
@@ -119,7 +117,7 @@ void Tree::load()
 
         glm::mat4x4 *matrices_array = new glm::mat4x4[mat_vector_ileaves.size()];
 
-        printf("will draw %lu individual leaves\n", mat_vector_ileaves.size());
+        // printf("will draw %lu individual leaves\n", mat_vector_ileaves.size());
 
         for (size_t i = 0; i < mat_vector_ileaves.size(); i++)
         {
