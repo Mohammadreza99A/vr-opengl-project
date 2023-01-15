@@ -23,7 +23,7 @@ public:
     // it defines the definition of the terrain
     //  a 4x3 terrain will contain 12 quads
     void init();
-    void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos);
+    void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, float heightScale, const glm::vec3 &light_pos);
     GLuint initTexture(char const *path);
     void cleanup();
     void bindAllTexture();
@@ -38,6 +38,8 @@ private:
 
     GLuint diffuseMap;
     GLuint normalMap;
+    GLuint heightMap;
+
     void generate_bricks();
     GLfloat *tangent;
 
