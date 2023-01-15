@@ -16,25 +16,18 @@ Barrel::Barrel()
     diffuseMap = Tools::initTexture(PATH_TO_TEXTURE "/barrel/barrel.png");
     normalMap = Tools::initTexture(PATH_TO_TEXTURE "/barrel/barrel_normal.png");
 
-    float ambient = 0.2;
-    float diffuse = 0.2;
-    float specular = 0.2;
-
     shader->use();
     shader->setInteger("diffuseMap", 0);
     shader->setInteger("normalMap", 1);
 
-    shader->setFloat("shininess", 10.0f);
-
-    shader->setFloat("light.ambient_strength", ambient);
-    shader->setFloat("light.diffuse_strength", diffuse);
-    shader->setFloat("light.specular_strength", specular);
-    shader->setFloat("light.constant", 0.5);
-    shader->setFloat("light.linear", 0.3);
-    shader->setFloat("light.quadratic", 0.07);
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+Shader *Barrel::getShader()
+{
+    return this->shader;
 }
 
 void Barrel::cleanup()

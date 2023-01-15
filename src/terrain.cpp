@@ -6,6 +6,13 @@ Terrain::Terrain()
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
+    init(1208,1208);
+    shader->use();
+    shader->setInteger("background_texture", 0);
+    shader->setInteger("r_texture", 1);
+    shader->setInteger("g_texture", 2);
+    shader->setInteger("b_texture", 3);
+    shader->setInteger("blendmap", 4);
 }
 
 void Terrain::init(unsigned int sub_x, unsigned int sub_y)
@@ -75,7 +82,15 @@ void Terrain::init(unsigned int sub_x, unsigned int sub_y)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _vbo_idx);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, nb_indices * sizeof(GLuint), indices, GL_STATIC_DRAW);
 
-    initTexture(PATH_TO_TEXTURE "/terrain/terrain_snow.jpg");
+    terrain_texture_id = Tools::initTexture(PATH_TO_TEXTURE "/terrain/snow.jpg");
+
+    r_texture_id = Tools::initTexture(PATH_TO_TEXTURE "/terrain/terrain_snow.jpg");
+    
+    g_texture_id = Tools::initTexture(PATH_TO_TEXTURE "/terrain/flower.png");
+    
+    b_texture_id = Tools::initTexture(PATH_TO_TEXTURE "/terrain/path.jpg");
+    blend_map = Tools::initTexture(PATH_TO_TEXTURE "/terrain/blendMap.jpg");
+
 
     glBindVertexArray(0);
 }
@@ -89,17 +104,21 @@ void Terrain::draw(glm::mat4x4 model, glm::mat4x4 view, glm::mat4x4 projection,
     glBindVertexArray(_vao);
 
     shader->setVector3f("u_view_pos", camera_position);
-    shader->setVector3f("u_light_pos", light_position);
+    shader->setVector3f("light.light_pos", light_position);
 
     shader->setMatrix4("M", model);
     shader->setMatrix4("itM", glm::transpose(glm::inverse(model)));
     shader->setMatrix4("V", view);
     shader->setMatrix4("P", projection);
-    shader->setInteger("f_texture", 0);
 
     glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_INT, 0);
     glUseProgram(0);
     glBindVertexArray(0);
+}
+
+Shader *Terrain::getShader()
+{
+    return this->shader;
 }
 
 void Terrain::cleanup()
@@ -141,45 +160,19 @@ float Terrain::get_height(float pos_x, float pos_y)
     return height;
 }
 
-void Terrain::initTexture(char const *path)
-{
-
-    glGenTextures(1, &terrain_texture_id);
-
-    int width, height, nrComponents;
-    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
-
-        glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
-}
 
 void Terrain::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, terrain_texture_id);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, r_texture_id);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, g_texture_id);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, b_texture_id);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, blend_map);
 }
 
 void Terrain::generate_terrain()
@@ -200,8 +193,8 @@ void Terrain::generate_terrain()
             vertices[cur_pos + 1] = heightmap[i][j]; //(*this.*func)(relative_x, relative_z);
             vertices[cur_pos + 2] = relative_z;
 
-            textures[((j * sub_x + i) * 2)] = (float(i) / (sub_x - 1)) * 70;
-            textures[((j * sub_x + i) * 2) + 1] = (float(j) / (sub_y - 1)) * 70;
+            textures[((j * sub_x + i) * 2)] = (float(i) / (sub_x - 1));
+            textures[((j * sub_x + i) * 2) + 1] = (float(j) / (sub_y - 1));
 
             normals[cur_pos + 0] = heightmap_normals[i][j][0]; // cross_product_vec[0];
             normals[cur_pos + 1] = heightmap_normals[i][j][1];
