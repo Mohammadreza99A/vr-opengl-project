@@ -13,6 +13,7 @@ class Dog
 private:
     Object *dog;
     Shader *shader;
+    Shader *shaderNormal;
     GLuint dogTextureID;
     int currentFrame;
     int numOfFrames;

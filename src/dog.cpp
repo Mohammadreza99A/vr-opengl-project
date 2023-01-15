@@ -3,6 +3,7 @@
 Dog::Dog()
 {
     shader = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    shaderNormal=  new Shader(PATH_TO_SHADERS "/dogNormalV.glsl", PATH_TO_SHADERS "/dogNormalF.glsl", PATH_TO_SHADERS "/dogNormalG.glsl");
     previousTime = 0;
 
     initKeyframe();
@@ -12,7 +13,6 @@ Dog::Dog()
     glBindVertexArray(0);
     glUseProgram(0);
 }
-
 void Dog::initKeyframe()
 {
     objectPaths = {PATH_TO_OBJECTS "/dog_inter_left.obj", PATH_TO_OBJECTS "/dog_inter_right.obj", PATH_TO_OBJECTS "/dog_right.obj", PATH_TO_OBJECTS "/dog_left.obj"};
@@ -46,10 +46,10 @@ void Dog::cleanup()
     glDeleteTextures(1, &dogTextureID);
 }
 
-void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPosition, const glm::vec3 &lightPosition, double current_frame)
+void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &cameraPosition, const glm::vec3 &lightPosition, double currentTime)
 {
 
-    walk(current_frame);
+    walk(currentTime);
     shader->use();
 
     bindAllTexture();
@@ -62,7 +62,12 @@ void Dog::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::ve
     shader->setVector3f("u_view_pos", cameraPosition);
     shader->setVector3f("light.light_pos", lightPosition);
     shader->setInteger("f_texture", 0);
-
+    dog->draw();
+    
+    shaderNormal->use();
+    shaderNormal->setMatrix4("projection", projection);
+    shaderNormal->setMatrix4("view", view);
+    shaderNormal->setMatrix4("model", dog->model);
     dog->draw();
 
     glBindVertexArray(0);
