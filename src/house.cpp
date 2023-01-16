@@ -7,7 +7,7 @@ House::House()
     char path[] = PATH_TO_OBJECTS "/farm_house.obj";
     house = new Object(path);
     house->makeObject(*shader);
-    house->model = glm::translate(house->model, glm::vec3(5.0, 5.0, -30.0));
+    house->model = glm::translate(house->model, glm::vec3(5.0, 3.0, -30.0));
     house->model = glm::rotate(house->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     house->model = glm::scale(house->model, glm::vec3(0.5, 0.5, 0.5));
 

@@ -147,11 +147,11 @@ void glHelper::mainLoop(GLFWwindow *window)
     // Bricks
     Bricks bricks(9, 37);
     light.on(bricks.getShader());
-    bricks.transform(glm::vec3(3.8, 2.0, -28.7), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.7, 0.5));
+    bricks.transform(glm::vec3(3.8, 0.01, -28.7), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.7, 0.5));
 
     Bricks bricks2(9, 37);
     light.on(bricks2.getShader());
-    bricks2.transform(glm::vec3(5.45, 2.0, -32.0), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 1.0, 0.5));
+    bricks2.transform(glm::vec3(5.5, 0.0, -32.0), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 1.0, 0.5));
 
     // Barrel
     Barrel barrel;
@@ -160,6 +160,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     // Dog
     Dog dog;
     light.on(dog.getShader());
+    point_light.setLight(dog.getShader());
 
     // Camera
     camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
@@ -235,6 +236,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         house.draw(view, perspective, cameraPosition, lightMovement);
 
         // Dog
+        point_light.setColor(dog.getShader(), horseColor);
         dog.draw(view, perspective, cameraPosition, lightMovement, currentTime);
 
 
