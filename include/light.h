@@ -8,8 +8,8 @@
 class Light
 {
 
-private:
-    Shader *shader;
+protected:
+    Shader *shader_light;
     float shininess;
     float ambient;
     float diffuse;

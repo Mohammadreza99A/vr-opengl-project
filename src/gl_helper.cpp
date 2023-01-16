@@ -115,11 +115,18 @@ void glHelper::mainLoop(GLFWwindow *window)
     SkyBox skyboxCubemap;
 
     Horse horse(skyboxCubemap.textureID);
-    std::vector<Shader *> horseShaders = horse.getShader();
-    for (int i = 0; i < (int)horseShaders.size(); i++)
-    {
-        light.on(horseShaders[i]);
-    }
+    light.on(horse.getShaderHorse());
+    light.on(horse.getShaderBase());
+
+    glm::vec3 horseColor = horse.getColor();
+    glm::vec3 horsePos = horse.get_position();
+
+    PointLight point_light(horseColor, 0.05, 1, 1, horsePos, 1.0, 0.09, 0.032);
+
+    point_light.setLight(horse.getShaderBase());
+    point_light.setLight(house.getShader());
+    point_light.setLight(windmill.getShader());
+    point_light.setLight(terrain.getShader());
 
     Sun sun;
 
@@ -136,15 +143,15 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::vec3 initialVelocity = glm::vec3(0, -30.0f / 5.0f, 0);
     glm::vec3 variation = glm::vec3(0, 1.0f, 0);
     snowParticles.setInitialVelocity(initialVelocity, variation);
-    
+
     // Bricks
     Bricks bricks(9, 37);
     light.on(bricks.getShader());
-    bricks.transform(glm::vec3(2.2, 2.0, -27.9), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.5, 0.5));
+    bricks.transform(glm::vec3(3.3, 0.1, -27.99), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.7, 1.0, 1.0));
 
     Bricks bricks2(9, 37);
     light.on(bricks2.getShader());
-    bricks2.transform(glm::vec3(4.9, 2.0, -33.1), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 0.5, 0.5));
+    bricks2.transform(glm::vec3(6.63, 0.0, -31.8), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.9, 1.0, 1.0));
 
     // Barrel
     Barrel barrel;
@@ -153,6 +160,7 @@ void glHelper::mainLoop(GLFWwindow *window)
     // Dog
     Dog dog;
     light.on(dog.getShader());
+    point_light.setLight(dog.getShader());
 
     // Camera
     camera.lookAt(glm::vec3(1.0, 1.0, 1.0), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
@@ -179,7 +187,6 @@ void glHelper::mainLoop(GLFWwindow *window)
         return deltaTime;
     };
 
-    // Main loop
     glfwSwapInterval(1);
     while (!glfwWindowShouldClose(window))
     {
@@ -215,15 +222,23 @@ void glHelper::mainLoop(GLFWwindow *window)
             trees[i]->draw();
         }
 
+        // Horse
+        //glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
+        glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
+        horse.draw(view, perspective, cameraPosition, lightMovement, lightColor);
+        horseColor = horse.getColor();
+
+        
+        const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
+        sun.draw(view, perspective, glm::make_vec3(cameraPosition), lightPosition, lightMovement, sun_colour);
         // House
+        point_light.setColor(house.getShader(), horseColor);
         house.draw(view, perspective, cameraPosition, lightMovement);
 
         // Dog
+        point_light.setColor(dog.getShader(), horseColor);
         dog.draw(view, perspective, cameraPosition, lightMovement, currentTime);
 
-        // Horse
-        glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
-        horse.draw(view, perspective, cameraPosition, lightMovement, lightColor);
 
         // Snow
         snowParticles.setTime(currentTime);
@@ -237,25 +252,26 @@ void glHelper::mainLoop(GLFWwindow *window)
         vec3df audioDir(-1.0 * cameraDirection.x, -1.0 * cameraDirection.y, -1.0 * cameraDirection.z);
         soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
-        // Terrain
+        // draw the terrain
+        point_light.setColor(terrain.getShader(), horseColor);
         terrain.draw(terrainModel, camera.getMatrix(), perspective, lightMovement, cameraPosition);
 
-        // Barrel
-        barrel.draw(view, perspective, cameraPosition, lightMovement);
+        point_light.setColor(barrel.getShader(), horseColor);
+        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), lightMovement);
 
         // Windmill
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        point_light.setColor(windmill.getShader(), horseColor);
         windmill.draw(view, perspective, cameraPosition, lightMovement, degree);
 
         // Bricks
-        bricks.draw(view, perspective, cameraPosition, heightScale, lightMovement);
-        bricks2.draw(view, perspective, cameraPosition, heightScale, lightMovement);
+        bricks.draw(view, perspective, glm::make_vec3(cameraPosition), heightScale, lightMovement);
+
+        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition), heightScale, lightMovement);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-
-        // Skybox
-        skyboxCubemap.draw(view, perspective, cameraPosition, lightPosition);
+        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), lightPosition);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
@@ -324,21 +340,6 @@ void glHelper::keyCallback(GLFWwindow *window, int key, int scancode, int action
         camera.inputHandling('I', 0.1);
     if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
         camera.inputHandling('K', 0.1);
-
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-    {
-        if (heightScale > 0.0f)
-            heightScale -= 0.0005f;
-        else
-            heightScale = 0.0f;
-    }
-    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-    {
-        if (heightScale < 1.0f)
-            heightScale += 0.0005f;
-        else
-            heightScale = 1.0f;
-    }
 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {

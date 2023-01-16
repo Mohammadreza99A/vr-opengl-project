@@ -8,7 +8,7 @@ Barrel::Barrel()
     barrel = new Object(path);
     barrel->makeObject(*shader, true, true);
 
-    barrel->model = glm::translate(barrel->model, glm::vec3(0.0, 3.0, -35.0));
+    barrel->model = glm::translate(barrel->model, glm::vec3(0.0, 2.2, -35.0));
     // barrel->model = glm::rotate(barrel->model, glm::radians(25.f), glm::vec3(0.0, 1.0, 0.0));
     barrel->model = glm::scale(barrel->model, glm::vec3(0.2, 0.2, 0.2));
 

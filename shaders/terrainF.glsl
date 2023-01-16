@@ -3,9 +3,11 @@ out vec4 FragColor;
 precision mediump float; 
 
 in vec2 tex_vcoord;
-in vec3 v_frag_coord; 
-in vec3 v_normal; 
 
+in vec3 surface_normal;
+in vec3 to_light;
+in vec3 to_camera;
+in vec3 v_frag_coord; 
 
 uniform vec3 u_view_pos; 
 
@@ -16,13 +18,24 @@ float ambient_strength;
 float diffuse_strength; 
 float specular_strength; 
 
-//attenuation factor
-//float constant;
-//float linear;
-//float quadratic;
+};
+
+struct PointLight {
+    vec3 position;
+    vec3 color;
+    
+    float constant;
+    float linear;
+    float quadratic;
+	
+    float ambient;
+    float diffuse;
+    float specular;
 };
 
 uniform Light light;
+
+uniform PointLight point_light;
 
 uniform float shininess; 
 uniform vec3 materialColour; 
@@ -41,6 +54,38 @@ float specularCalculation(vec3 N, vec3 L, vec3 V ){
     return light.specular_strength * spec;
 }
 
+// calculates the color when using a point light.
+vec4 CalcPointLight(PointLight light, vec3 N , vec3 V)
+{
+    vec3 L = normalize(light.position - v_frag_coord) ; 
+    float spec = specularCalculation( N, L, V); 
+    float diff = light.diffuse * max(dot(N,L),0.0);
+    float distance = length(light.position - v_frag_coord);
+    float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);    
+    // combine results
+    vec3 ambient = light.ambient * light.color ;
+    vec3 diffuse = light.diffuse * light.color * diff;
+    vec3 specular = light.specular * light.color*spec;
+    ambient *= attenuation;
+    diffuse *= attenuation;
+    specular *= attenuation;
+    return vec4(ambient + diffuse + specular, 1.0);
+}
+
+
+
+// calculates the color when using a directional light.
+vec4 CalcDirLight(Light light, vec3 N, vec3 V)
+{
+    vec3 L = normalize(to_light) ; 
+    float specular = light.specular_strength *specularCalculation( N, L, V); 
+    float diffuse = light.diffuse_strength * max(dot(N,L),0.0);
+    float distance = length(light.light_pos - v_frag_coord);
+    // float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+    float light_value = light.ambient_strength + (diffuse + specular); 
+    return vec4(materialColour * vec3(light_value), 1.0);
+}
+
 void main() { 
 
     vec4 blendmap_texture_col = texture(blendmap,tex_vcoord );
@@ -55,14 +100,11 @@ void main() {
 
     vec4 total_texture= background_texture_col + r_texture_col + g_texture_col+ b_texture_col;
     
-    vec3 N = normalize(v_normal);
-    vec3 L = normalize(light.light_pos - v_frag_coord) ; 
-    vec3 V = normalize(u_view_pos - v_frag_coord); 
+    vec3 N = normalize(surface_normal);
 
+	vec3 V = normalize(to_camera);
+
+    vec4 res = CalcDirLight(light, N, V) + CalcPointLight(point_light, N ,  V) ;
     
-    float specular = specularCalculation( N, L, V); 
-    float diffuse = light.diffuse_strength * max(dot(N,L),0.2);
-    float light = light.ambient_strength + (diffuse + specular); 
-    vec4 frag_light = vec4(materialColour * vec3(light), 1.0);
-    FragColor =  total_texture * frag_light;
+    FragColor =  total_texture * res;
 } 

@@ -15,6 +15,7 @@ Terrain::Terrain()
     shader->setInteger("blendmap", 4);
 }
 
+
 void Terrain::init(unsigned int sub_x, unsigned int sub_y)
 {
 
