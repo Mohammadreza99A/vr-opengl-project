@@ -83,6 +83,8 @@ void glHelper::mainLoop(GLFWwindow *window)
     glm::vec3 materialColour = glm::vec3(1.0f, 1.0f, 0.9f);
     glm::vec3 light_pos = glm::vec3(5.0, 20.0, 2.0);
 
+    
+
     Light light(shininess, ambient_strength, diffuse_strength, specular_strength, materialColour);
 
     Terrain terrain;
@@ -100,6 +102,17 @@ void glHelper::mainLoop(GLFWwindow *window)
     SkyBox skyboxCubemap;
 
     Horse horse(skyboxCubemap.textureID);
+    light.setLight(horse.getShader());
+    
+    glm::vec3 horseColor= horse.getColor();
+    glm::vec3 horsePos=horse.get_position();
+
+    PointLight point_light(horseColor, 0.05, 1, 1,horsePos,1.0,0.09,0.032);
+
+    point_light.setLight(horse.getShader());
+    point_light.setLight(house.getShader());
+    point_light.setLight(windmill.getShader());
+    point_light.setLight(terrain.getShader());
 
     Sun sun;
 
@@ -165,12 +178,16 @@ void glHelper::mainLoop(GLFWwindow *window)
         {
             delta = glm::vec3(5.0, 5.0, -30.0) + glm::vec3(0.0f, cos(currentTime / 2) * 300.0f, sin(currentTime / 2) * 300.0f);
         }
+        horse.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, glm::vec3(2.0f, 2.0f, 1.0f));
 
+        horseColor = horse.getColor();
+
+        point_light.setColor(house.getShader(),horseColor);
         house.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, delta, sun_colour);
 
-        horse.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos, glm::vec3(2.0f, 2.0f, 1.0f));
+          
 
         if (isSnowing)
         {
@@ -183,12 +200,15 @@ void glHelper::mainLoop(GLFWwindow *window)
         soundEngine->setListenerPosition(audioPos, audioDir, vec3df(0.0, 1.0, 0.0));
 
         // draw the terrain
+        point_light.setColor(terrain.getShader(),horseColor);
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
 
+        point_light.setColor(house.getShader(),horseColor);
         barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
+        point_light.setColor(windmill.getShader(),horseColor);
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
         bricks.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);

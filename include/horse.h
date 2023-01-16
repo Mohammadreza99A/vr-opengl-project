@@ -15,16 +15,23 @@ private:
     Shader *shaderBase;
     GLuint horse_texture_id;
     GLuint base_id;
+    glm::vec3 rgb = glm::vec3(1.0);
+    glm::vec3 position;
 
 public:
     Horse(GLuint skyboxID);
     void cleanup();
     void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos, const glm::vec3 &light_color);
+    
+    glm::vec3 getColor();
 
     void render();
     void initTexture(std::string path);
 
     void bindAllTexture();
+    glm::vec3 get_position();
+
+    Shader *getShader();
 };
 
 #endif

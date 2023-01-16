@@ -5,7 +5,9 @@ Horse::Horse(GLuint skyboxID)
     horse_texture_id = skyboxID;
     float scale=8.0;
     // compile the shaders.
-    float x=0.0,y=1.5,z=-60;
+    float x=0.0,y=1.5,z=-50;
+    position = glm::vec3(x,y,z);
+
     shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl");
 
 
@@ -30,6 +32,15 @@ Horse::Horse(GLuint skyboxID)
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+glm::vec3 Horse::get_position(){
+    return position;
+}
+
+Shader *Horse::getShader()
+{
+    return this->shaderBase;
 }
 
 void Horse::cleanup()
@@ -65,18 +76,10 @@ void Horse::render()
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, horse_texture_id);
 
-    
+    glBindVertexArray(0);
+    glUseProgram(0);
 
-    shaderBase->use();
 
-    shaderBase->setFloat("shininess", 0.0f);
-    shaderBase->setVector3f("materialColour", materialColour);
-    shaderBase->setFloat("light.ambient_strength", ambient);
-    shaderBase->setFloat("light.diffuse_strength", diffuse);
-    shaderBase->setFloat("light.specular_strength", specular);
-    shaderBase->setFloat("light.constant", 1.0);
-    shaderBase->setFloat("light.linear", 0.3);
-    shaderBase->setFloat("light.quadratic", 0.07);
 }
 
 
@@ -98,7 +101,8 @@ void Horse::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
         float red = (rand() % 256) / 256.0;
         float green = (rand() % 256) / 256.0;
         float blue = (rand() % 256) / 256.0;
-        shaderHorse->setVector3f("material_colour", glm::vec3(red, green, blue));
+        rgb=glm::vec3(red, green, blue);
+        shaderHorse->setVector3f("material_colour", rgb);
     }
 
     // shader_horse->setInteger("f_texture", 0);
@@ -108,6 +112,8 @@ void Horse::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
     // std::cout << delta.z <<std::endl;
     shaderHorse->setVector3f("light.light_pos", light_pos);
     horse->draw();
+    glBindVertexArray(0);
+    glUseProgram(0);
 
     shaderBase->use();
     shaderBase->setMatrix4("M", base->model);
@@ -117,11 +123,16 @@ void Horse::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
     shaderBase->setVector3f("u_view_pos", camera_position);
     shaderBase->setVector3f("u_light_pos", light_pos);
     shaderBase->setInteger("f_texture", 0);
+    shaderBase->setVector3f("point_light.color", rgb);
 
     base->draw();
 
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+glm::vec3 Horse::getColor(){
+    return rgb;
 }
 
 void Horse::initTexture(std::string path)

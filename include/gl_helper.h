@@ -23,6 +23,7 @@ using namespace irrklang;
 #include "house.h"
 #include "windmill.h"
 #include "light.h"
+#include "point_light.h"
 #include "drawable.h"
 #include "snow.h"
 #include "horse.h"
