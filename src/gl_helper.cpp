@@ -203,7 +203,7 @@ void glHelper::mainLoop(GLFWwindow *window)
         point_light.setColor(terrain.getShader(),horseColor);
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
 
-        point_light.setColor(house.getShader(),horseColor);
+        point_light.setColor(barrel.getShader(),horseColor);
         barrel.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
 
         double deltaTime = fps(currentTime);

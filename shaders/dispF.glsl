@@ -7,6 +7,7 @@ in VS_OUT {
     vec3 TangentLightPos;
     vec3 TangentViewPos;
     vec3 TangentFragPos;
+    mat3 TBN;
 } fs_in;
 
 uniform sampler2D diffuseMap;
