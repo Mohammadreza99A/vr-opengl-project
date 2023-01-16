@@ -49,7 +49,7 @@ float skyboxVertices[] = {
 
 SkyBox::SkyBox()
 {
-    shader = new Shader(PATH_TO_SHADERS "/skyBoxV.glsl", PATH_TO_SHADERS "/skyBoxF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/skyBoxV.glsl", PATH_TO_SHADERS "/skyBoxF.glsl",NULL);
 
     paths.push_back(PATH_TO_TEXTURE "/skybox/posx.jpg");
     paths.push_back(PATH_TO_TEXTURE "/skybox/negx.jpg");

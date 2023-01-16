@@ -28,6 +28,7 @@ public:
     void cleanup();
     void bindAllTexture();
     void compute_tangents();
+    Shader *getShader();
 
 private:
     

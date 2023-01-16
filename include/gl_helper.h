@@ -32,6 +32,8 @@ using namespace irrklang;
 #include "bricks.h"
 #include "barrel.h"
 
+#include "dog.h"
+
 #define WIN_TITLE "VR OpenGL Project"
 #define WIN_WIDTH 1024
 #define WIN_HEIGHT 720
@@ -44,9 +46,9 @@ namespace glHelper
     void initCallbacks(GLFWwindow *window);
     void init(GLFWwindow *window);
     void mainLoop(GLFWwindow *window);
-    void error_callback(int error, const char *description);
-    void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-    void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+    void errorCallback(int error, const char *description);
+    void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+    void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     void fillTreesPos();
     void cleanup(GLFWwindow *window);
 } // namespace glHelper

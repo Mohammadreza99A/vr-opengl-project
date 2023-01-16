@@ -3,10 +3,9 @@ out vec4 FragColor;
 precision mediump float; 
 
 in vec2 tex_vcoord;
+in vec3 v_frag_coord; 
+in vec3 v_normal; 
 
-in vec3 surface_normal;
-in vec3 to_light;
-in vec3 to_camera;
 
 uniform vec3 u_view_pos; 
 
@@ -56,10 +55,9 @@ void main() {
 
     vec4 total_texture= background_texture_col + r_texture_col + g_texture_col+ b_texture_col;
     
-    vec3 N = normalize(surface_normal);
-	vec3 L = normalize(to_light);
-
-	vec3 V = normalize(to_camera);
+    vec3 N = normalize(v_normal);
+    vec3 L = normalize(light.light_pos - v_frag_coord) ; 
+    vec3 V = normalize(u_view_pos - v_frag_coord); 
 
     
     float specular = specularCalculation( N, L, V); 

@@ -12,6 +12,8 @@ in VS_OUT {
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 uniform float shininess; 
+uniform vec3 materialColour; 
+
 
 
 struct Light{ 
@@ -56,7 +58,7 @@ void main()
 
    // diffuse
    vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
-   float diff =  max(dot(lightDir, normal), light.diffuse_strength);
+   float diff =  max(dot(lightDir, normal),0.0)* light.diffuse_strength;
    vec3 diffuse = diff * color;
 
    // specular
@@ -68,7 +70,7 @@ void main()
 
 
     float distance = length(light.light_pos - fs_in.FragPos);
-    float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
-
-   FragColor = vec4(ambient + diffuse + specular + attenuation, 1.0);
+    //float attenuation = 1 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
+   vec3 light =ambient + (diff + spec);//* attenuation;
+   FragColor = vec4(light*materialColour, 1.0);
 }

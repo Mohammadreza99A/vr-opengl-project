@@ -14,7 +14,7 @@
 int main()
 {
 
-    glfwSetErrorCallback(glHelper::error_callback);
+    glfwSetErrorCallback(glHelper::errorCallback);
 
     if (!glfwInit())
     {
