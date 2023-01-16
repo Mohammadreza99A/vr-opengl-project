@@ -147,11 +147,11 @@ void glHelper::mainLoop(GLFWwindow *window)
     // Bricks
     Bricks bricks(9, 37);
     light.on(bricks.getShader());
-    bricks.transform(glm::vec3(3.8, 0.01, -28.7), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.45, 0.7, 0.5));
+    bricks.transform(glm::vec3(3.3, 0.1, -27.99), glm::radians(295.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.7, 1.0, 1.0));
 
     Bricks bricks2(9, 37);
     light.on(bricks2.getShader());
-    bricks2.transform(glm::vec3(5.5, 0.0, -32.0), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.55, 1.0, 0.5));
+    bricks2.transform(glm::vec3(6.63, 0.0, -31.8), glm::radians(205.f), glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.9, 1.0, 1.0));
 
     // Barrel
     Barrel barrel;
