@@ -204,19 +204,19 @@ void glHelper::mainLoop(GLFWwindow *window)
         terrain.draw(terrainModel, camera.getMatrix(), perspective, delta, glm::make_vec3(cameraPosition));
 
         point_light.setColor(house.getShader(),horseColor);
-        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        barrel.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
 
         double deltaTime = fps(currentTime);
         float degree = deltaTime * 100 > 25 ? 14.0 : 8.0;
         point_light.setColor(windmill.getShader(),horseColor);
         windmill.draw(view, perspective, glm::make_vec3(cameraPosition), delta, degree);
 
-        bricks.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
+        bricks.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, delta);
 
-        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, light_pos);
+        bricks2.draw(view, perspective, glm::make_vec3(cameraPosition),heightScale, delta);
 
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
-        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), light_pos);
+        skyboxCubemap.draw(view, perspective, glm::make_vec3(cameraPosition), delta);
         glDepthFunc(GL_LESS); // set depth function back to default
 
         fps(currentTime);
