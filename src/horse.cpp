@@ -51,10 +51,10 @@ void Horse::cleanup()
     glDeleteTextures(1, &horse_texture_id);
 }
 
-std::vector<Shader *>Horse::getShader()
-{   shaders = {this->shaderBase,this->shaderHorse };
-    return shaders;
-}
+// std::vector<Shader *>Horse::getShader()
+// {   shaders = {this->shaderBase,this->shaderHorse };
+//     return shaders;
+// }
 
 
 void Horse::render()

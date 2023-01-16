@@ -56,11 +56,6 @@ void Barrel::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm:
     glUseProgram(0);
 }
 
-Shader *Barrel::getShader()
-{
-    return this->shader;
-}
-
 void Barrel::bindAllTexture()
 {
     glActiveTexture(GL_TEXTURE0);

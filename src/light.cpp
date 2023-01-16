@@ -27,8 +27,3 @@ void Light::on(Shader *shader)
     glBindVertexArray(0);
     glUseProgram(0);
 }
-
-void Light::cleanup()
-{
-    shader_light->cleanup();
-}

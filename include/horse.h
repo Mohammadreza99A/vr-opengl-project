@@ -29,7 +29,7 @@ public:
 
     void render();
     void initTexture(std::string path);
-    std::vector<Shader *>getShader();
+    // std::vector<Shader *>getShader();
 
     void bindAllTexture();
     glm::vec3 get_position();
