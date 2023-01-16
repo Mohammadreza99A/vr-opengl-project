@@ -23,8 +23,9 @@ private:
 public:
     Horse(GLuint skyboxID);
     void cleanup();
+
     void draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::vec3 &camera_position, const glm::vec3 &light_pos, const glm::vec3 &light_color);
-    
+
     glm::vec3 getColor();
 
     void render();
@@ -34,7 +35,10 @@ public:
     void bindAllTexture();
     glm::vec3 get_position();
 
-    Shader *getShader();
+    Shader *getShaderBase();
+
+    Shader *getShaderHorse();
+
 };
 
 #endif

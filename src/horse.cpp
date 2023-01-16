@@ -38,9 +38,14 @@ glm::vec3 Horse::get_position(){
     return position;
 }
 
-Shader *Horse::getShader()
+Shader *Horse::getShaderBase()
 {
     return this->shaderBase;
+}
+
+Shader *Horse::getShaderHorse()
+{
+    return this->shaderHorse;
 }
 
 void Horse::cleanup()

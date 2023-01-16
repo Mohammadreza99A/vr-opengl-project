@@ -15,10 +15,7 @@ vec3 light_pos;
 float ambient_strength; 
 float diffuse_strength; 
 float specular_strength; 
-//attenuation factor
-float constant;
-float linear;
-float quadratic;
+
 };
 
 

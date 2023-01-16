@@ -115,14 +115,15 @@ void glHelper::mainLoop(GLFWwindow *window)
     SkyBox skyboxCubemap;
 
     Horse horse(skyboxCubemap.textureID);
-    light.on(horse.getShader());
+    light.on(horse.getShaderHorse());
+    light.on(horse.getShaderBase());
 
     glm::vec3 horseColor = horse.getColor();
     glm::vec3 horsePos = horse.get_position();
 
     PointLight point_light(horseColor, 0.05, 1, 1, horsePos, 1.0, 0.09, 0.032);
 
-    point_light.setLight(horse.getShader());
+    point_light.setLight(horse.getShaderBase());
     point_light.setLight(house.getShader());
     point_light.setLight(windmill.getShader());
     point_light.setLight(terrain.getShader());
@@ -219,23 +220,23 @@ void glHelper::mainLoop(GLFWwindow *window)
             trees[i]->move_leaves(currentTime - prevTime);
             trees[i]->draw();
         }
-        horse.draw(view, perspective, glm::make_vec3(cameraPosition), lightPosition, glm::vec3(2.0f, 2.0f, 1.0f));
 
+        // Horse
+        //glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
+        glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
+        horse.draw(view, perspective, cameraPosition, lightMovement, lightColor);
         horseColor = horse.getColor();
 
-        point_light.setColor(house.getShader(), horseColor);
-        house.draw(view, perspective, glm::make_vec3(cameraPosition), lightMovement);
+        
         const glm::vec3 sun_colour = glm::vec3(1.0f, 1.0f, 0.0f);
         sun.draw(view, perspective, glm::make_vec3(cameraPosition), lightPosition, lightMovement, sun_colour);
         // House
+        point_light.setColor(house.getShader(), horseColor);
         house.draw(view, perspective, cameraPosition, lightMovement);
 
         // Dog
         dog.draw(view, perspective, cameraPosition, lightMovement, currentTime);
 
-        // Horse
-        glm::vec3 lightColor = glm::vec3(2.0f, 2.0f, 1.0f);
-        horse.draw(view, perspective, cameraPosition, lightMovement, lightColor);
 
         // Snow
         snowParticles.setTime(currentTime);
