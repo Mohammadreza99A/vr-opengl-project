@@ -138,7 +138,7 @@ void Bricks::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm:
     shader->setMatrix4("view", view);
     shader->setMatrix4("model", model);
     shader->setVector3f("viewPos", camera_position);
-    shader->setVector3f("light.light_pos", light_pos);
+    shader->setVector3f("lightPos", light_pos);
     shader->setFloat("heightScale", heightScale); // adjust with Q and E keys
     bindAllTexture();
     glDrawElements(GL_TRIANGLES, nb_indices, GL_UNSIGNED_INT, 0);
