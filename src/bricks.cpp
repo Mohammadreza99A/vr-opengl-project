@@ -2,7 +2,7 @@
 
 Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, sub_y)
 {
-    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/dispF.glsl");
+    shader = new Shader(PATH_TO_SHADERS "/normalV.glsl", PATH_TO_SHADERS "/dispF.glsl", NULL);
     _pid = shader->ID;
     if (_pid == 0)
         exit(-1);
@@ -25,17 +25,22 @@ Bricks::Bricks(unsigned int sub_x, unsigned int sub_y) : MatrixSquares(sub_x, su
     shader->setInteger("normalMap", 1);
     shader->setInteger("depthMap", 2);
 
-    shader->setFloat("shininess", 68.0f);
+    // shader->setFloat("shininess", 68.0f);
 
-    shader->setFloat("light.ambient_strength", ambient);
-	shader->setFloat("light.diffuse_strength", diffuse);
-	shader->setFloat("light.specular_strength", specular);
-	shader->setFloat("light.constant", 1.0);
-	shader->setFloat("light.linear", 0.3);
-	shader->setFloat("light.quadratic", 0.07);
+    // shader->setFloat("light.ambient_strength", ambient);
+	// shader->setFloat("light.diffuse_strength", diffuse);
+	// shader->setFloat("light.specular_strength", specular);
+	// shader->setFloat("light.constant", 1.0);
+	// shader->setFloat("light.linear", 0.3);
+	// shader->setFloat("light.quadratic", 0.07);
     // to avoid the current object being polluted
     glBindVertexArray(0);
     glUseProgram(0);
+}
+
+Shader *Bricks::getShader()
+{
+    return this->shader;
 }
 
 void Bricks::transform(glm::vec3 translate,float radians, glm::vec3 rotate, glm::vec3 scale){

@@ -18,8 +18,7 @@ protected:
 
 public:
     Light(float shininess, float ambient, float diffuse, float specular, glm::vec3 materialColour);
-    void setLight(Shader *shader_light);
+    void on(Shader *shader);
 
-    void cleanup();
 };
 #endif

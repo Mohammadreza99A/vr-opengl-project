@@ -8,7 +8,7 @@ Horse::Horse(GLuint skyboxID)
     float x=0.0,y=1.5,z=-50;
     position = glm::vec3(x,y,z);
 
-    shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl");
+    shaderHorse = new Shader(PATH_TO_SHADERS "/statueHorseV.glsl", PATH_TO_SHADERS "/statueHorseF.glsl", NULL);
 
 
     char path1[] = PATH_TO_OBJECTS "/horse.obj";
@@ -18,7 +18,7 @@ Horse::Horse(GLuint skyboxID)
     horse->model = glm::scale(horse->model, glm::vec3(scale,scale, scale));
     
 
-    shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl");
+    shaderBase = new Shader(PATH_TO_SHADERS "/vertexShader.glsl", PATH_TO_SHADERS "/fragShader.glsl", NULL);
 
     char path2[] = PATH_TO_OBJECTS "/base.obj";
     base = new Object(path2);
@@ -51,6 +51,12 @@ void Horse::cleanup()
     glDeleteTextures(1, &horse_texture_id);
 }
 
+std::vector<Shader *>Horse::getShader()
+{   shaders = {this->shaderBase,this->shaderHorse };
+    return shaders;
+}
+
+
 void Horse::render()
 {
 
@@ -62,15 +68,6 @@ void Horse::render()
     shaderHorse->use();
     shaderHorse->setInteger("cubemap_sampler", 1);
 
-    shaderHorse->setFloat("shininess", 40.0f);
-    shaderHorse->setVector3f("materialColour", materialColour);
-    shaderHorse->setFloat("light.ambient_strength", ambient);
-    shaderHorse->setFloat("light.diffuse_strength", diffuse);
-    shaderHorse->setFloat("light.specular_strength", specular);
-    shaderHorse->setFloat("light.constant", 1.0);
-    shaderHorse->setFloat("light.linear", 0.14);
-    shaderHorse->setFloat("light.quadratic", 0.07);
-
     shaderHorse->setVector3f("materialColour", materialColour);
     shaderHorse->setFloat("refractionIndice", 1.63);
     glActiveTexture(GL_TEXTURE1);
@@ -79,6 +76,8 @@ void Horse::render()
     glBindVertexArray(0);
     glUseProgram(0);
 
+
+    shaderBase->use();
 
 }
 
@@ -121,7 +120,7 @@ void Horse::draw(const glm::mat4 &view, const glm::mat4 &projection, const glm::
     shaderBase->setMatrix4("V", view);
     shaderBase->setMatrix4("P", projection);
     shaderBase->setVector3f("u_view_pos", camera_position);
-    shaderBase->setVector3f("u_light_pos", light_pos);
+    shaderBase->setVector3f("light.light_pos", light_pos);
     shaderBase->setInteger("f_texture", 0);
     shaderBase->setVector3f("point_light.color", rgb);
 

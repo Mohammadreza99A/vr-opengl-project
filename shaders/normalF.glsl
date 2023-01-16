@@ -13,6 +13,8 @@ in VS_OUT {
 uniform sampler2D diffuseMap;
 uniform sampler2D normalMap;
 uniform float shininess; 
+uniform vec3 materialColour; 
+
 
 
 struct Light{ 

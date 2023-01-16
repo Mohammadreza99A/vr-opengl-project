@@ -4,79 +4,71 @@
 #include "object.h"
 #include "stb_image.h"
 
-class SnowManager
+class Snow
 {
 
 public:
-   SnowManager(uint nb_particles);
+   Snow(uint nbOfParticles);
 
-   ~SnowManager()
-   {
-   }
-
-   void set_emiter_boundary(GLfloat minx, GLfloat maxx, GLfloat miny, GLfloat maxy, GLfloat minz, GLfloat maxz);
+   void setEmiterBoundary(glm::vec3 minCoords, glm::vec3 maxCoords);
 
    // will be rand between the two durations
-   void set_life_duration_sec(float life_sec_min, float life_sec_max);
+   void setLifeDurationSec(float lifeSecMin, float lifeSecMax);
 
    // must be called every draw loop
-   void set_time(float time);
+   void setTime(float time);
 
    // variation to set init_vel_x (+- variation)
-   void set_initial_velocity(float init_vel_x, float init_vel_y, float init_vel_z, float variation_x, float variation_y, float variation_z);
+   void setInitialVelocity(glm::vec3 initialVelocity , glm::vec3 variation);
 
    void clean();
 
-   void draw(glm::mat4x4 view_matrix, glm::mat4x4 projection_matrix, GLfloat camera_position[3], GLfloat light_position[3]);
+   void draw(glm::mat4x4 viewMatrix, glm::mat4x4 projectionMatrix, glm::vec3 &cameraPosition, glm::vec3 &lightPosition);
 
 protected:
    struct Particle
    {
       float *position;
       glm::vec3 speed;
-      float *life_remaining;
+      float *lifeRemaining;
       float *age;
    };
 
-   std::vector<Particle> lst_particles;
+   std::vector<Particle> particlesVector;
 
-   uint nb_particles;
+   uint nbOfParticles;
    Shader *shader;
 
-   float life_sec_min;
-   float life_sec_max;
-   float current_time;
-   float prev_time;
+   float lifeSecMin;
+   float lifeSecMax;
+   float currentTime;
+   float prevTime;
 
-   GLfloat *particles_positions;
-   GLfloat *particles_life;
+   GLfloat *particlesPositions;
+   GLfloat *particlesLife;
 
    GLuint _pid;
-   GLuint vao_particles;
+   GLuint vaoParticles;
 
    GLuint _vbo;
-   GLuint _vbo_tex;
-   GLuint _vbo_points_pos;
-   GLuint _vbo_points_life;
+   GLuint _vboTex;
+   GLuint _vboPointsPos;
+   GLuint _vboPointsLife;
 
-   GLfloat emiter_boudary_min_x;
-   GLfloat emiter_boudary_max_x;
-   GLfloat emiter_boudary_min_y;
-   GLfloat emiter_boudary_max_y;
-   GLfloat emiter_boudary_min_z;
-   GLfloat emiter_boudary_max_z;
+   glm::vec3 emiterBoudaryMin;
+   glm::vec3 emiterBoudaryMax;
 
    // initial velocities
    glm::vec3 velocity;
 
-   void wind_func(float pos[3], float ret[3], float time);
+   void windFunc(float pos[3], float ret[3], float time);
 
-   void handle_particles();
+   void handleParticles();
 
    float mix(float min, float max, float ratio);
 
    // no wind
-   static void default_wind(float[3], float ret[3], float);
+   static void defaultWind(float[3], float ret[3], float);
 };
 
 #endif

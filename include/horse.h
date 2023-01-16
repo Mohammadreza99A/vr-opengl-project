@@ -4,6 +4,7 @@
 #include "shader.h"
 #include "object.h"
 #include "stb_image.h"
+#include <vector>
 
 class Horse
 {
@@ -15,6 +16,7 @@ private:
     Shader *shaderBase;
     GLuint horse_texture_id;
     GLuint base_id;
+    std::vector<Shader *>shaders;
     glm::vec3 rgb = glm::vec3(1.0);
     glm::vec3 position;
 
@@ -27,6 +29,7 @@ public:
 
     void render();
     void initTexture(std::string path);
+    std::vector<Shader *>getShader();
 
     void bindAllTexture();
     glm::vec3 get_position();

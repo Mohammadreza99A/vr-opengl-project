@@ -3,6 +3,8 @@ out vec4 FragColor;
 precision mediump float; 
 
 in vec2 tex_vcoord;
+in vec3 v_frag_coord; 
+in vec3 v_normal; 
 
 in vec3 surface_normal;
 in vec3 to_light;
