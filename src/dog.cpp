@@ -86,7 +86,7 @@ void Dog::walk(double currentTime)
 
     dog->model = glm::mat4(1.0f);
     dog->model = glm::scale(dog->model, glm::vec3(0.5f));
-    dog->model = glm::translate(dog->model, glm::vec3(-5.0, 5.0, -50.0 + deltaTime * 5));
+    dog->model = glm::translate(dog->model, glm::vec3(-10.0, 5.0, -50.0 + deltaTime * 5));
     dog->model = glm::rotate(dog->model, glm::radians(-75.f), glm::vec3(0.0, 1.0, 0.0));
 
     if ((deltaTime - previousTime) > 0.0)
